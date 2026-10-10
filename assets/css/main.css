@@ -788,6 +788,126 @@ a { color: inherit; text-decoration: none; }
   color: var(--accent);
 }
 
+/* ---------- cv ---------- */
+
+.cv-contact {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 10px;
+}
+
+.cv-contact a { color: var(--accent); }
+
+.cv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.cv-body h2 {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cv-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-3);
+  margin: -4px 0 12px;
+}
+
+.cv-skills {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-bottom: 20px;
+}
+
+.cv-skills strong { color: var(--text); }
+
+.cv-skill-list {
+  columns: 2;
+  column-gap: 32px;
+  margin-bottom: 20px;
+}
+
+.cv-skill-list li { break-inside: avoid; }
+
+.cv-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 999px;
+  padding: 2px 10px;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+.cv-stack {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: -6px;
+}
+
+/* ---------- print / pdf export ---------- */
+
+@media print {
+  .site-header, .site-footer, .cv-actions, .availability { display: none !important; }
+
+  body, html { background: #fff !important; }
+
+  .page { padding: 0 !important; max-width: none !important; }
+
+  .article-head { padding: 0 0 16px !important; }
+
+  .article-head h1 { color: #111 !important; font-size: 26px !important; }
+
+  .article-head .lead { color: #333 !important; font-size: 13px !important; }
+
+  .cv-contact { color: #444 !important; font-size: 11px !important; }
+  .cv-contact a { color: #b45309 !important; text-decoration: none !important; }
+
+  .cv-body {
+    color: #1a1a1a !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+  }
+
+  .cv-body h2 {
+    color: #111 !important;
+    font-size: 14pt !important;
+    border-bottom: 1px solid #ccc !important;
+    margin: 18px 0 8px !important;
+    page-break-after: avoid;
+  }
+
+  .cv-body h3 {
+    color: #111 !important;
+    font-size: 12pt !important;
+    page-break-after: avoid;
+  }
+
+  .cv-body p, .cv-body li { color: #1a1a1a !important; }
+
+  .cv-body a { color: #b45309 !important; text-decoration: none !important; }
+
+  .cv-meta { color: #666 !important; }
+
+  .cv-status { color: #b45309 !important; border-color: #d4a25a !important; }
+
+  .cv-stack { color: #666 !important; }
+
+  .cv-skill-list { columns: 2; }
+
+  h2, h3 { break-after: avoid-page; }
+  ul, li { break-inside: avoid; }
+
+  @page { margin: 1.5cm 1.6cm; }
+}
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 720px) {
@@ -796,4 +916,15 @@ a { color: inherit; text-decoration: none; }
   .section { padding: 52px 0; }
   .site-nav { gap: 0; }
   .site-nav a { padding: 6px 10px; font-size: 12px; }
+  .cv-skill-list { columns: 1; }
 }
+
+/* ---------- cv print button (js hook) ---------- */
+
+#cv-print-btn {
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-family: inherit;
+}
+
+#cv-print-btn:hover { background: var(--accent-hover); }

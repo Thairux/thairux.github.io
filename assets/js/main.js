@@ -81,4 +81,12 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
+
+  // CV → PDF: the print stylesheet renders a clean, white, ink-friendly CV.
+  const cvPrintBtn = document.getElementById("cv-print-btn");
+  if (cvPrintBtn) {
+    cvPrintBtn.addEventListener("click", function () {
+      window.print();
+    });
+  }
 });

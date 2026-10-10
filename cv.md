@@ -1,80 +1,75 @@
 ---
 layout: default
 title: CV
+permalink: /cv/
 ---
+
+{% assign cv = site.data.cv %}
 
 <section class="article-head">
   <div class="page">
-    <p class="kicker" style="font-family: var(--mono); font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em;">Curriculum Vitae</p>
-    <h1>Peter Thairu Muigai</h1>
+    <p class="kicker">Curriculum Vitae</p>
+    <h1>{{ cv.contact.name }}</h1>
+    <p class="lead">{{ cv.contact.tagline }}</p>
+    <p class="cv-contact">
+      {{ cv.contact.location }} &nbsp;·&nbsp; {{ cv.contact.phone }} &nbsp;·&nbsp;
+      <a href="mailto:{{ cv.contact.email }}">{{ cv.contact.email }}</a> &nbsp;·&nbsp;
+      <a href="{{ cv.contact.website }}" target="_blank" rel="noopener noreferrer">{{ cv.contact.website | remove: 'https://' }}</a>
+    </p>
+    <p class="cv-actions">
+      <a href="{{ '/admin/' | relative_url }}" class="btn btn-secondary">Edit this CV</a>
+      <button type="button" class="btn btn-primary" id="cv-print-btn">Export as PDF</button>
+    </p>
   </div>
 </section>
 
 <div class="page" style="padding-bottom: 80px;">
-  <div class="article-body">
-
-    <p><strong>Location:</strong> Lanet, Nakuru, Kenya &nbsp;·&nbsp; <strong>Phone:</strong> 0715 538 259 &nbsp;·&nbsp; <strong>Email:</strong> ptmthairu@gmail.com</p>
+  <div class="article-body cv-body" id="cv-document">
 
     <h2>Professional Summary</h2>
-    <p>Computer Science graduate with practical experience building AI agent tooling, automation systems, and cross-platform developer infrastructure. Skilled in TypeScript, Python, Electron, and SQLite with a focus on automation-first engineering, testing discipline, and cross-tool integration. Currently an intern at Pixel Academy, supporting robotics and AI education for children while continuing to ship production-grade developer tools. Fluent in English and Kiswahili. Available for immediate start.</p>
+    <p>{{ cv.summary }}</p>
 
     <h2>Professional Experience</h2>
-
-    <h3>Intern — Office &amp; Instruction · Pixel Academy</h3>
-    <p><em>Current · Nakuru, Kenya</em></p>
+    {% for role in cv.experience %}
+    <h3>{{ role.role }} — {{ role.org }}</h3>
+    <p class="cv-meta">{{ role.period }}{% if role.location %} · {{ role.location }}{% endif %}</p>
     <ul>
-      <li>Assistant instructor supporting lead instructors in robotics and AI education programs for children and teens</li>
-      <li>Translating complex technical concepts into age-appropriate lessons and hands-on exercises</li>
-      <li>Coordinating academy operations: scheduling, learner records, resource preparation, equipment setup</li>
-      <li>Maintaining and troubleshooting teaching hardware — laptops, robotics kits, classroom technology</li>
+      {% for bullet in role.bullets %}<li>{{ bullet }}</li>{% endfor %}
     </ul>
-
-    <h3>ICT Attachment · Nakuru Teaching &amp; Referral Hospital</h3>
-    <p><em>3 months · ICT Department</em></p>
-    <ul>
-      <li>First-line technical support to hospital staff across hardware, software, and network issues</li>
-      <li>Troubleshooting day-to-day ICT problems to minimize downtime of critical systems</li>
-      <li>Routine system maintenance, user account management, and department documentation</li>
-      <li>Collaborated with the ICT team on infrastructure reliability across clinical and administrative units</li>
-    </ul>
+    {% if role.skills %}
+    <p class="cv-skills"><strong>Skills gained:</strong> {{ role.skills | join: ', ' }}</p>
+    {% endif %}
+    {% endfor %}
 
     <h2>Education</h2>
-
-    <h3>BSc Computer Science · Kabarak University</h3>
-    <p><em>Awaiting graduation and final results</em></p>
-
-    <h3>Computer Networking — Short Course Certification</h3>
-    <p><em>Completed</em></p>
-
-    <h3>Kenya Certificate of Secondary Education (KCSE) · Menengai High School, Nakuru</h3>
-    <p><em>Grade B- · Completed</em></p>
+    {% for entry in cv.education %}
+    <h3>{{ entry.qualification }}</h3>
+    <p class="cv-meta">{{ entry.institution }}{% if entry.status %} · {{ entry.status }}{% endif %}</p>
+    {% if entry.detail %}<p>{{ entry.detail }}</p>{% endif %}
+    {% endfor %}
 
     <h2>Technical Skills</h2>
-    <ul>
-      <li><strong>Languages:</strong> TypeScript, JavaScript, Python, SQL, Bash</li>
-      <li><strong>Applications:</strong> Electron, React, Node.js, REST API design and integration</li>
-      <li><strong>Data:</strong> SQLite, full-text search, schema design</li>
-      <li><strong>AI &amp; Agents:</strong> MCP server development, local LLM orchestration (Ollama), agent automation, prompt engineering</li>
-      <li><strong>Practices:</strong> Test-driven development, automation-first workflows, cross-tool integration, security-minded engineering</li>
-      <li><strong>Tools:</strong> Git &amp; GitHub, Jekyll, Cloudflare, ffmpeg</li>
+    {% for group in cv.skills %}
+    <h3>{{ group.name }}</h3>
+    <ul class="cv-skill-list">
+      {% for item in group.items %}<li>{{ item }}</li>{% endfor %}
     </ul>
+    {% endfor %}
 
     <h2>Selected Projects</h2>
-    <ul>
-      <li><strong>Cross-Agent Memory Protocol</strong> — open protocol enabling multiple AI coding assistants to share one persistent memory; core engine, MCP server, and three platform integrations. TypeScript, SQLite.</li>
-      <li><strong>Local AI Life Agent</strong> — privacy-first desktop agent running entirely on local models with media generation. Electron, React, Ollama.</li>
-      <li><strong>Trading Signals Platform</strong> — full-stack market analysis platform with Python backend and Electron dashboard.</li>
-      <li><strong>Developer Workflow Tooling</strong> — suite of skills, hooks, and rules automating AI-assistant workflows across five tools.</li>
-    </ul>
+    {% for project in cv.projects %}
+    <h3>{{ project.name }} <span class="cv-status">{{ project.status }}</span></h3>
+    <p>{{ project.description }}</p>
+    {% if project.stack %}<p class="cv-stack">{{ project.stack | join: ' · ' }}</p>{% endif %}
+    {% endfor %}
 
     <h2>Languages</h2>
-    <ul>
-      <li>English — Fluent</li>
-      <li>Kiswahili — Fluent</li>
+    <ul class="cv-skill-list">
+      {% for lang in cv.languages %}<li>{{ lang.name }} — {{ lang.level }}</li>{% endfor %}
     </ul>
 
     <h2>Referees</h2>
-    <p>Available upon request.</p>
+    <p>{{ cv.referees }}</p>
 
   </div>
 </div>

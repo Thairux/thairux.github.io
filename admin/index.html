@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mosse Admin — Thairux</title>
+<title>Portfolio Admin — Thairux</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -26,7 +26,6 @@
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
 
-  /* ---- shell ---- */
   .app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; }
   aside {
     background: var(--surface); border-right: 1px solid var(--border-subtle);
@@ -83,7 +82,6 @@
 
   .content { flex: 1; overflow-y: auto; padding: 24px; }
 
-  /* ---- list view ---- */
   .list { display: flex; flex-direction: column; gap: 10px; max-width: 860px; }
   .item {
     background: var(--card); border: 1px solid var(--border-subtle);
@@ -105,7 +103,6 @@
     text-align: center; color: var(--text-3);
   }
 
-  /* ---- editor view ---- */
   .editor { display: flex; flex-direction: column; gap: 16px; max-width: 900px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
@@ -127,7 +124,36 @@
   .status-bar.err { color: #fda4af; }
   .status-bar .material-symbols-outlined { font-size: 16px; }
 
-  /* ---- login ---- */
+  /* ---- cv editor ---- */
+  .cv-block {
+    background: var(--card); border: 1px solid var(--border-subtle);
+    border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .cv-block-head {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--accent);
+  }
+  .cv-block-head .material-symbols-outlined { font-size: 16px; }
+  .cv-block-head .spacer { flex: 1; }
+  .cv-repeat { display: flex; flex-direction: column; gap: 10px; }
+  .cv-entry {
+    background: var(--elevated); border: 1px solid var(--border-subtle);
+    border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .cv-entry-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text-3); font-weight: 600;
+  }
+  .cv-entry-head .spacer { flex: 1; }
+  .cv-entry-head .btn { padding: 4px 10px; font-size: 11px; }
+  .cv-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cv-row.one { grid-template-columns: 1fr; }
+  .cv-lines { display: flex; flex-direction: column; gap: 8px; }
+  .cv-line { display: flex; gap: 8px; align-items: center; }
+  .cv-line input { flex: 1; }
+  .cv-line .btn { padding: 4px 8px; font-size: 11px; }
+
   .gate { display: grid; place-items: center; height: 100vh; padding: 24px; }
   .gate .card {
     background: var(--surface); border: 1px solid var(--border-subtle);
@@ -150,12 +176,11 @@
 </head>
 <body>
 
-<!-- ============ LOGIN GATE ============ -->
 <div class="gate" id="gate">
   <div class="card">
     <div class="mark">T</div>
     <h2 id="gateTitle">Portfolio Admin</h2>
-    <p id="gateMsg">Sign in with GitHub to edit posts and projects. Commits are made as you, straight to <code>main</code>.</p>
+    <p id="gateMsg">Sign in with GitHub to edit posts, projects, and the CV. Commits are made as you, straight to <code>main</code>.</p>
     <div id="gateAction">
       <button class="btn primary" id="loginBtn">
         <span class="material-symbols-outlined">login</span> Sign in with GitHub
@@ -165,7 +190,6 @@
   </div>
 </div>
 
-<!-- ============ APP ============ -->
 <div class="app" id="app" hidden>
   <aside>
     <div class="brand">
@@ -178,7 +202,7 @@
 
     <nav class="nav">
       <div class="nav-label">Content</div>
-      <button data-view="posts" class="active">
+      <button data-view="posts">
         <span class="material-symbols-outlined">article</span> Posts
         <span class="count" id="postCount">0</span>
       </button>
@@ -186,12 +210,18 @@
         <span class="material-symbols-outlined">folder_special</span> Projects
         <span class="count" id="projCount">0</span>
       </button>
+      <div class="nav-label">Profile</div>
+      <button data-view="cv">
+        <span class="material-symbols-outlined">badge</span> CV
+        <span class="count">_data/cv.yml</span>
+      </button>
     </nav>
 
     <div class="foot">
       Signed in as<br><code id="userLabel">—</code><br><br>
       Commits go directly to <code>main</code>.<br>
-      Pages rebuilds automatically.
+      Pages rebuilds automatically.<br><br>
+      The CV page + PDF export both render<br>from <code>_data/cv.yml</code>.
     </div>
   </aside>
 
@@ -199,7 +229,7 @@
     <header class="bar">
       <h1 id="viewTitle">Posts</h1>
       <div class="spacer"></div>
-      <button class="btn" id="newBtn"><span class="material-symbols-outlined">add</span> New</button>
+      <button class="btn" id="newBtn" hidden><span class="material-symbols-outlined">add</span> New</button>
       <button class="btn" id="logoutBtn"><span class="material-symbols-outlined">logout</span> Sign out</button>
     </header>
 
@@ -216,6 +246,7 @@ const REPO  = "thairux.github.io";
 const BRANCH = "main";
 const AUTH_ORIGIN = "https://thairux-auth.ptmthairu.workers.dev";
 const API = "https://api.github.com";
+const CV_PATH = "_data/cv.yml";
 
 const COLLECTIONS = {
   posts:    { dir: "_posts",    label: "Post",    icon: "article" },
@@ -228,8 +259,9 @@ const COLLECTIONS = {
 let token = sessionStorage.getItem("gh_token") || null;
 let user = JSON.parse(sessionStorage.getItem("gh_user") || "null");
 let view = "posts";
-let items = [];          // current collection's file list
-let editing = null;      // { path, name, sha, front, body } when in editor
+let items = [];
+let editing = null;
+let cvState = null;   // { sha, data: parsedYaml, raw: text }
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({
@@ -240,7 +272,7 @@ async function gh(path, opts = {}) {
   const res = await fetch(`${API}${path}`, {
     ...opts,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: *** ${token}`,
       Accept: "application/vnd.github+json",
       "Content-Type": "application/json",
       ...(opts.headers || {}),
@@ -307,7 +339,7 @@ function login() {
 }
 
 async function loadUser() {
-  const res = await fetch(`${API}/user`, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(`${API}/user`, { headers: { Authorization: *** ${token}` } });
   user = await res.json();
   sessionStorage.setItem("gh_user", JSON.stringify(user));
 }
@@ -330,7 +362,7 @@ function showGate() {
   $("#gate").hidden = false;
   $("#app").hidden = true;
   setGate("Portfolio Admin",
-    "Sign in with GitHub to edit posts and projects. Commits are made as you, straight to <code>main</code>.", true);
+    "Sign in with GitHub to edit posts, projects, and the CV. Commits are made as you, straight to <code>main</code>.", true);
 }
 
 function showApp() {
@@ -342,14 +374,162 @@ function showApp() {
 }
 
 /* ================================================================
+   Minimal YAML (subset) parse/serialize for _data/cv.yml
+   Supports: nested maps, lists of maps, lists of scalars, block scalars (>-).
+================================================================ */
+function parseYaml(text) {
+  const lines = text.split(/\r?\n/);
+  const root = {};
+  // stack of { indent, container, parent, key }
+  const stack = [{ indent: -1, container: root }];
+
+  function top() { return stack[stack.length - 1]; }
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    if (!raw.trim() || raw.trim().startsWith("#")) continue;
+
+    const indent = raw.match(/^\s*/)[0].length;
+    const t = raw.trim();
+
+    // pop stack to current indent
+    while (stack.length > 1 && indent <= top().indent) stack.pop();
+
+    // list item: "- " or "-"
+    if (t.startsWith("- ") || t === "-") {
+      const content = t === "-" ? "" : t.slice(2).trim();
+      const parent = top().container;
+      // parent is a map whose last key holds an array — find it
+      const keys = Object.keys(parent);
+      if (!keys.length) continue;
+      const lastKey = keys[keys.length - 1];
+      if (!Array.isArray(parent[lastKey])) parent[lastKey] = [];
+
+      if (content === "") {
+        // map item follows on next lines
+        const obj = {};
+        parent[lastKey].push(obj);
+        stack.push({ indent: indent, container: obj, isMapItem: true });
+      } else if (content.includes(":")) {
+        // "- key: value" inline map start
+        const obj = {};
+        parent[lastKey].push(obj);
+        const ci = content.indexOf(":");
+        const k = content.slice(0, ci).trim();
+        const v = content.slice(ci + 1).trim();
+        if (v === "") {
+          obj[k] = {};
+          stack.push({ indent: indent + 2, container: obj[k], isMapItem: true });
+        } else {
+          obj[k] = stripQuotes(v);
+          stack.push({ indent: indent, container: obj, isMapItem: true });
+        }
+      } else {
+        parent[lastKey].push(stripQuotes(content));
+      }
+      continue;
+    }
+
+    // key: value
+    const ci = t.indexOf(":");
+    if (ci === -1) continue;
+    const key = t.slice(0, ci).trim();
+    const val = t.slice(ci + 1).trim();
+
+    const container = top().container;
+    if (val === "") {
+      container[key] = {};
+      stack.push({ indent: indent, container: container[key] });
+    } else if (val === ">-") {
+      // block scalar — read until next line with <= indent that is a key
+      const buf = [];
+      let j = i + 1;
+      while (j < lines.length) {
+        const l = lines[j];
+        if (!l.trim()) { buf.push(""); j++; continue; }
+        const li = l.match(/^\s*/)[0].length;
+        if (li <= indent) break;
+        buf.push(l.trim());
+        j++;
+      }
+      container[key] = buf.join(" ").trim();
+      i = j - 1;
+    } else {
+      container[key] = stripQuotes(val);
+    }
+  }
+  return root;
+}
+
+function stripQuotes(v) {
+  return v.replace(/^["']|["']$/g, "");
+}
+
+function toYaml(value, indent = 0) {
+  const pad = "  ".repeat(indent);
+  if (Array.isArray(value)) {
+    let out = "";
+    for (const item of value) {
+      if (typeof item === "object" && item !== null) {
+        const keys = Object.keys(item);
+        if (!keys.length) { out += `${pad}- {}\n`; continue; }
+        let first = true;
+        for (const k of keys) {
+          const v = item[k];
+          const prefix = first ? `${pad}- ` : `${pad}  `;
+          first = false;
+          if (typeof v === "object" && v !== null) {
+            out += `${prefix}${k}:\n${toYaml(v, indent + 2)}`;
+          } else if (Array.isArray(v)) {
+            out += `${prefix}${k}:\n${toYaml(v, indent + 2)}`;
+          } else {
+            out += `${prefix}${k}: ${yamlScalar(v)}\n`;
+          }
+        }
+      } else {
+        out += `${pad}- ${yamlScalar(item)}\n`;
+      }
+    }
+    return out;
+  }
+  if (typeof value === "object" && value !== null) {
+    let out = "";
+    for (const k of Object.keys(value)) {
+      const v = value[k];
+      if (typeof v === "object" && v !== null) {
+        out += `${pad}${k}:\n${toYaml(v, indent + 1)}`;
+      } else if (Array.isArray(v)) {
+        out += `${pad}${k}:\n${toYaml(v, indent + 1)}`;
+      } else {
+        out += `${pad}${k}: ${yamlScalar(v)}\n`;
+      }
+    }
+    return out;
+  }
+  return `${pad}${yamlScalar(value)}\n`;
+}
+
+function yamlScalar(v) {
+  if (v == null) return '""';
+  const s = String(v);
+  if (s === "") return '""';
+  if (/[:#\->{}\[\],&*!|>'"%@`]/.test(s) || s !== s.trim() || /^\d+$/.test(s)) {
+    return JSON.stringify(s);
+  }
+  return s;
+}
+
+/* ================================================================
    Views
 ================================================================ */
 function switchView(v) {
   view = v; editing = null;
   document.querySelectorAll(".nav button").forEach(b =>
     b.classList.toggle("active", b.dataset.view === v));
-  $("#viewTitle").textContent = v === "posts" ? "Posts" : "Projects";
-  renderList();
+  $("#newBtn").hidden = (v === "cv");
+  $("#viewTitle").textContent = v === "posts" ? "Posts" : v === "projects" ? "Projects" : "CV";
+  if (v === "cv") renderCvEditor();
+  else renderList();
 }
 
 async function loadItems() {
@@ -428,6 +608,7 @@ function renderEditor() {
 
 function status(msg, cls) {
   const el = $("#saveStatus");
+  if (!el) return;
   el.style.display = "flex";
   el.className = `status-bar ${cls}`;
   el.innerHTML = `<span class="material-symbols-outlined">${cls === "ok" ? "check_circle" : cls === "err" ? "error" : "sync"}</span> ${esc(msg)}`;
@@ -488,6 +669,316 @@ async function createNew() {
     renderList();
   } catch (err) {
     alert(err.message);
+  }
+}
+
+/* ================================================================
+   CV editor
+================================================================ */
+async function loadCv() {
+  const file = await gh(`/repos/${OWNER}/${REPO}/contents/${CV_PATH}?ref=${BRANCH}`);
+  const raw = atob(file.content);
+  cvState = { sha: file.sha, raw, data: parseYaml(raw) };
+}
+
+function renderCvEditor() {
+  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading CV…</div>`;
+  loadCv().then(() => paintCvEditor())
+    .catch(e => {
+      $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(e.message)}</div>`;
+    });
+}
+
+function paintCvEditor() {
+  const d = cvState.data;
+  const c = d.contact || {};
+
+  $("#content").innerHTML = `
+    <div class="editor">
+      <div class="status-bar" id="cvStatus" style="display:none"></div>
+
+      <div class="cv-block">
+        <div class="cv-block-head"><span class="material-symbols-outlined">contact_page</span> Contact</div>
+        <div class="cv-row">
+          <div class="field"><label>Name</label><input id="cvName" value="${esc(c.name || "")}"></div>
+          <div class="field"><label>Tagline</label><input id="cvTagline" value="${esc(c.tagline || "")}"></div>
+        </div>
+        <div class="cv-row">
+          <div class="field"><label>Location</label><input id="cvLocation" value="${esc(c.location || "")}"></div>
+          <div class="field"><label>Phone</label><input id="cvPhone" value="${esc(c.phone || "")}"></div>
+        </div>
+        <div class="cv-row">
+          <div class="field"><label>Email</label><input id="cvEmail" value="${esc(c.email || "")}"></div>
+          <div class="field"><label>Availability</label><input id="cvAvailability" value="${esc(c.availability || "")}"></div>
+        </div>
+      </div>
+
+      <div class="cv-block">
+        <div class="cv-block-head"><span class="material-symbols-outlined">description</span> Summary</div>
+        <div class="field"><label>Professional summary</label>
+          <textarea id="cvSummary" style="min-height:120px">${esc(d.summary || "")}</textarea></div>
+      </div>
+
+      <div class="cv-block">
+        <div class="cv-block-head"><span class="material-symbols-outlined">work</span> Experience
+          <div class="spacer"></div>
+          <button class="btn" id="cvAddExp"><span class="material-symbols-outlined">add</span> Add role</button>
+        </div>
+        <div class="cv-repeat" id="cvExpList"></div>
+      </div>
+
+      <div class="cv-block">
+        <div class="cv-block-head"><span class="material-symbols-outlined">school</span> Education
+          <div class="spacer"></div>
+          <button class="btn" id="cvAddEdu"><span class="material-symbols-outlined">add</span> Add entry</button>
+        </div>
+        <div class="cv-repeat" id="cvEduList"></div>
+      </div>
+
+      <div class="cv-block">
+        <div class="cv-block-head"><span class="material-symbols-outlined">psychology</span> Skills
+          <div class="spacer"></div>
+          <button class="btn" id="cvAddSkill"><span class="material-symbols-outlined">add</span> Add group</button>
+        </div>
+        <div class="cv-repeat" id="cvSkillList"></div>
+      </div>
+
+      <div class="cv-block">
+        <div class="cv-block-head"><span class="material-symbols-outlined">folder_special</span> Projects
+          <div class="spacer"></div>
+          <button class="btn" id="cvAddProj"><span class="material-symbols-outlined">add</span> Add project</button>
+        </div>
+        <div class="cv-repeat" id="cvProjList"></div>
+      </div>
+
+      <div class="cv-block">
+        <div class="cv-block-head"><span class="material-symbols-outlined">translate</span> Languages
+          <div class="spacer"></div>
+          <button class="btn" id="cvAddLang"><span class="material-symbols-outlined">add</span> Add language</button>
+        </div>
+        <div class="cv-repeat" id="cvLangList"></div>
+      </div>
+
+      <div class="cv-block">
+        <div class="cv-block-head"><span class="material-symbols-outlined">group</span> Referees</div>
+        <div class="field"><label>Referees line</label><input id="cvReferees" value="${esc(d.referees || "")}"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn" id="cvReloadBtn"><span class="material-symbols-outlined">refresh</span> Reload</button>
+        <button class="btn primary" id="cvSaveBtn"><span class="material-symbols-outlined">save</span> Commit CV to main</button>
+      </div>
+      <p class="field hint" style="margin-top:-6px">
+        Saving rebuilds <code>_data/cv.yml</code> from the fields above. The CV page and the
+        PDF export both render from that file, so everything here flows to both.
+      </p>
+    </div>`;
+
+  // paint repeatable sections
+  const exp = d.experience || [];
+  $("#cvExpList").innerHTML = exp.map((r, i) => `
+    <div class="cv-entry" data-exp="${i}">
+      <div class="cv-entry-head">Role ${i + 1}
+        <div class="spacer"></div>
+        <button class="btn danger" data-del="exp:${i}"><span class="material-symbols-outlined">delete</span></button>
+      </div>
+      <div class="cv-row">
+        <div class="field"><label>Role</label><input value="${esc(r.role || "")}" data-f="role"></div>
+        <div class="field"><label>Organization</label><input value="${esc(r.org || "")}" data-f="org"></div>
+      </div>
+      <div class="cv-row">
+        <div class="field"><label>Period</label><input value="${esc(r.period || "")}" data-f="period"></div>
+        <div class="field"><label>Location (optional)</label><input value="${esc(r.location || "")}" data-f="location"></div>
+      </div>
+      <div class="field"><label>Bullets</label>
+        <div class="cv-lines">
+          ${(r.bullets || []).map((b, bi) => `
+            <div class="cv-line">
+              <input value="${esc(b)}" data-l="bullet:${bi}">
+              <button class="btn danger" data-del-line="bullet:${bi}"><span class="material-symbols-outlined">close</span></button>
+            </div>`).join("")}
+        </div>
+        <button class="btn" data-add-line="bullet" style="align-self:flex-start;margin-top:6px">
+          <span class="material-symbols-outlined">add</span> Add bullet</button>
+      </div>
+      <div class="field"><label>Skills gained (comma separated)</label>
+        <input value="${esc((r.skills || []).join(", "))}" data-f="skills"></div>
+    </div>`).join("");
+
+  const edu = d.education || [];
+  $("#cvEduList").innerHTML = edu.map((e, i) => `
+    <div class="cv-entry" data-edu="${i}">
+      <div class="cv-entry-head">Entry ${i + 1}
+        <div class="spacer"></div>
+        <button class="btn danger" data-del="edu:${i}"><span class="material-symbols-outlined">delete</span></button>
+      </div>
+      <div class="cv-row">
+        <div class="field"><label>Qualification</label><input value="${esc(e.qualification || "")}" data-f="qualification"></div>
+        <div class="field"><label>Institution</label><input value="${esc(e.institution || "")}" data-f="institution"></div>
+      </div>
+      <div class="cv-row">
+        <div class="field"><label>Status</label><input value="${esc(e.status || "")}" data-f="status"></div>
+        <div class="field"><label>Detail (optional)</label><input value="${esc(e.detail || "")}" data-f="detail"></div>
+      </div>
+    </div>`).join("");
+
+  const skills = d.skills || [];
+  $("#cvSkillList").innerHTML = skills.map((g, i) => `
+    <div class="cv-entry" data-skill="${i}">
+      <div class="cv-entry-head">Group ${i + 1}
+        <div class="spacer"></div>
+        <button class="btn danger" data-del="skill:${i}"><span class="material-symbols-outlined">delete</span></button>
+      </div>
+      <div class="field"><label>Group name</label><input value="${esc(g.name || "")}" data-f="name"></div>
+      <div class="field"><label>Items (comma separated)</label>
+        <input value="${esc((g.items || []).join(", "))}" data-f="items"></div>
+    </div>`).join("");
+
+  const projs = d.projects || [];
+  $("#cvProjList").innerHTML = projs.map((p, i) => `
+    <div class="cv-entry" data-proj="${i}">
+      <div class="cv-entry-head">Project ${i + 1}
+        <div class="spacer"></div>
+        <button class="btn danger" data-del="proj:${i}"><span class="material-symbols-outlined">delete</span></button>
+      </div>
+      <div class="cv-row">
+        <div class="field"><label>Name</label><input value="${esc(p.name || "")}" data-f="name"></div>
+        <div class="field"><label>Status</label><input value="${esc(p.status || "")}" data-f="status"></div>
+      </div>
+      <div class="field"><label>Description</label><input value="${esc(p.description || "")}" data-f="description"></div>
+      <div class="field"><label>Stack (comma separated)</label>
+        <input value="${esc((p.stack || []).join(", "))}" data-f="stack"></div>
+    </div>`).join("");
+
+  const langs = d.languages || [];
+  $("#cvLangList").innerHTML = langs.map((l, i) => `
+    <div class="cv-entry" data-lang="${i}">
+      <div class="cv-entry-head">Language ${i + 1}
+        <div class="spacer"></div>
+        <button class="btn danger" data-del="lang:${i}"><span class="material-symbols-outlined">delete</span></button>
+      </div>
+      <div class="cv-row">
+        <div class="field"><label>Name</label><input value="${esc(l.name || "")}" data-f="name"></div>
+        <div class="field"><label>Level</label><input value="${esc(l.level || "")}" data-f="level"></div>
+      </div>
+    </div>`).join("");
+
+  wireCvEditor();
+}
+
+function wireCvEditor() {
+  $("#cvAddExp").onclick = () => { (cvState.data.experience ||= []).push({ role: "", org: "", period: "", bullets: [] }); paintCvEditor(); };
+  $("#cvAddEdu").onclick = () => { (cvState.data.education ||= []).push({ qualification: "", institution: "", status: "" }); paintCvEditor(); };
+  $("#cvAddSkill").onclick = () => { (cvState.data.skills ||= []).push({ name: "", items: [] }); paintCvEditor(); };
+  $("#cvAddProj").onclick = () => { (cvState.data.projects ||= []).push({ name: "", status: "", description: "", stack: [] }); paintCvEditor(); };
+  $("#cvAddLang").onclick = () => { (cvState.data.languages ||= []).push({ name: "", level: "" }); paintCvEditor(); };
+  $("#cvReloadBtn").onclick = () => renderCvEditor();
+
+  $("#content").querySelectorAll("[data-del]").forEach(btn => {
+    btn.onclick = () => {
+      const [sec, idx] = btn.dataset.del.split(":");
+      const list = cvState.data[sec];
+      list.splice(+idx, 1);
+      paintCvEditor();
+    };
+  });
+
+  $("#content").querySelectorAll("[data-add-line]").forEach(btn => {
+    btn.onclick = () => {
+      const kind = btn.dataset.addLine; // "bullet"
+      const entry = btn.closest(".cv-entry");
+      const i = +entry.dataset.exp;
+      (cvState.data.experience[i].bullets ||= []).push("");
+      paintCvEditor();
+    };
+  });
+
+  $("#content").querySelectorAll("[data-del-line]").forEach(btn => {
+    btn.onclick = () => {
+      const [kind, idx] = btn.dataset.delLine.split(":");
+      const entry = btn.closest(".cv-entry");
+      const i = +entry.dataset.exp;
+      cvState.data.experience[i].bullets.splice(+idx, 1);
+      paintCvEditor();
+    };
+  });
+
+  $("#cvSaveBtn").onclick = saveCv;
+}
+
+function collectCv() {
+  const d = cvState.data;
+  d.contact = {
+    name: $("#cvName").value,
+    tagline: $("#cvTagline").value,
+    location: $("#cvLocation").value,
+    phone: $("#cvPhone").value,
+    email: $("#cvEmail").value,
+    github: d.contact?.github || "https://github.com/Thairux",
+    website: d.contact?.website || "https://thairux.github.io",
+    availability: $("#cvAvailability").value,
+  };
+  d.summary = $("#cvSummary").value;
+
+  const readEntries = (sel, attr) => {
+    const out = [];
+    $("#content").querySelectorAll(sel).forEach(el => {
+      const i = +el.getAttribute(attr);
+      const obj = {};
+      el.querySelectorAll("[data-f]").forEach(inp => {
+        let v = inp.value;
+        if (inp.dataset.f === "skills" || inp.dataset.f === "items" || inp.dataset.f === "stack") {
+          obj[inp.dataset.f] = v.split(",").map(s => s.trim()).filter(Boolean);
+        } else {
+          obj[inp.dataset.f] = v;
+        }
+      });
+      el.querySelectorAll("[data-l]").forEach(inp => {
+        const [kind, idx] = inp.dataset.l.split(":");
+        (obj[kind === "bullet" ? "bullets" : kind] ||= []).splice(+idx, 1, inp.value);
+      });
+      out[i] = obj;
+    });
+    return out;
+  };
+
+  d.experience = readEntries("[data-exp]", "data-exp");
+  d.education  = readEntries("[data-edu]", "data-edu");
+  d.skills     = readEntries("[data-skill]", "data-skill");
+  d.projects   = readEntries("[data-proj]", "data-proj");
+  d.languages  = readEntries("[data-lang]", "data-lang");
+  d.referees   = $("#cvReferees").value;
+}
+
+async function saveCv() {
+  const btn = $("#cvSaveBtn");
+  btn.disabled = true;
+  status("Committing CV…", "");
+  try {
+    collectCv();
+    const header =
+`# ==========================================================================
+# CV Master Data — Peter Thairu Muigai
+# Single source of truth for /cv/ page, admin editor, and PDF export.
+# Editable via the admin page; every field here flows into the rendered CV
+# and the exported PDF, so richer sections never lose context from the base CV.
+# ==========================================================================
+
+`;
+    const content = header + toYaml(cvState.data, 0);
+    await gh(`/repos/${OWNER}/${REPO}/contents/${CV_PATH}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        message: "admin: update CV data (_data/cv.yml)",
+        content: btoa(unescape(encodeURIComponent(content))),
+        sha: cvState.sha,
+        branch: BRANCH,
+      }),
+    });
+    status("CV committed to main — Pages is rebuilding.", "ok");
+  } catch (err) {
+    status(err.message, "err");
+    btn.disabled = false;
   }
 }
 

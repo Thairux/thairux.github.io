@@ -39,7 +39,7 @@ permalink: /projects/
       <p>A full-stack market analysis platform combining a Python backend, signal processing pipeline, and an Electron dashboard for real-time market monitoring and analysis.</p>
       <p>Backend ingests and normalizes market data, applies signal strategies, and serves results through a REST API consumed by the desktop dashboard.</p>
       <div class="project-stack"><span>Python</span><span>Electron</span><span>REST APIs</span></div>
-      <span class="project-link">Shipped →</span>
+      <span class="project-link">In active development →</span>
     </div>
 
     <div class="project-card">

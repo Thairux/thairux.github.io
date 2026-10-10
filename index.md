@@ -149,7 +149,7 @@ title: Home
         <h3>Trading Signals Platform</h3>
         <p>A full-stack market analysis platform combining a Python backend, signal processing pipeline, and an Electron dashboard for real-time market monitoring and analysis.</p>
         <div class="project-stack"><span>Python</span><span>Electron</span><span>REST APIs</span></div>
-        <span class="project-link">Shipped →</span>
+        <span class="project-link">In active development →</span>
       </div>
       <div class="project-card">
         <span class="badge">Automation</span>
