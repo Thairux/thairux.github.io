@@ -63,15 +63,20 @@ export default {
 <p>Authorized — you can close this window.</p>
 <script>
 (function () {
-  function receiveMessage(e) {
-    window.opener.postMessage(
-      { type: "github-auth-success", token: ${JSON.stringify(data.access_token)} },
-      e.origin
-    );
-    window.close();
+  // Deliver the token to the opener directly. We don't gate on a reply:
+  // send immediately, repeat a few times over ~1s in case the opener's
+  // listener attaches late, then close. (An earlier version waited for a
+  // handshake reply that never came, so the popup just sat there.)
+  var token = ${JSON.stringify(data.access_token)};
+  function deliver() {
+    try { window.opener.postMessage({ type: "github-auth-success", token: token }, "*"); } catch (e) {}
   }
-  window.addEventListener("message", receiveMessage, false);
-  window.opener.postMessage({ type: "github-auth-handshake" }, "*");
+  var tries = 0;
+  deliver();
+  var iv = setInterval(function () {
+    deliver();
+    if (++tries >= 5) { clearInterval(iv); window.close(); }
+  }, 200);
 })();
 </script>
 </body></html>`;

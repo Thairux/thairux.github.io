@@ -322,6 +322,12 @@ function login() {
 
   function onMsg(e) {
     if (e.origin !== AUTH_ORIGIN) return;
+    // The callback popup sends a handshake first and waits for a reply
+    // before it posts the token back. Answer it, then it will deliver.
+    if (e.data?.type === "github-auth-handshake") {
+      try { e.source.postMessage({ type: "github-auth-ready" }, e.origin); } catch {}
+      return;
+    }
     if (e.data?.type === "github-auth-success") {
       cleanup();
       token = e.data.token;
