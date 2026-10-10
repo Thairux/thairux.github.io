@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mosse Admin — Thairux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #13151b; --surface: #181b22; --card: #1e222b; --elevated: #252a36;
+    --border: #2b3140; --border-subtle: rgba(255,255,255,0.07);
+    --text: #e5e7eb; --text-2: #9ca3af; --text-3: #6b7280;
+    --accent: #f59e0b; --accent-hover: #d97706;
+    --emerald: #10b981; --rose: #f43f5e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: Inter, -apple-system, sans-serif; font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+
+  /* ---- shell ---- */
+  .app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; }
+  aside {
+    background: var(--surface); border-right: 1px solid var(--border-subtle);
+    display: flex; flex-direction: column; padding: 20px 16px; gap: 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .mark {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #fbbf24);
+    display: grid; place-items: center; color: #0c0a09; font-weight: 700; font-size: 14px;
+  }
+  .brand .name { font-weight: 600; }
+  .brand .sub { font-size: 11px; color: var(--text-3); }
+
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-3); font-weight: 600; padding: 0 8px; margin-bottom: 4px;
+  }
+  .nav button {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 9px 12px; border-radius: 10px; border: 0; background: transparent;
+    color: var(--text-2); font: inherit; cursor: pointer; text-align: left;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav button:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .nav button.active { background: var(--elevated); color: var(--accent); font-weight: 500; }
+  .nav .material-symbols-outlined { font-size: 18px; }
+  .nav .count { margin-left: auto; font-size: 11px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+
+  aside .foot { margin-top: auto; font-size: 11px; color: var(--text-3); line-height: 1.6; }
+  aside .foot code { font-family: 'JetBrains Mono', monospace; color: var(--text-2); }
+
+  main { display: flex; flex-direction: column; overflow: hidden; }
+  header.bar {
+    height: 52px; border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: center; padding: 0 24px; gap: 12px; flex-shrink: 0;
+  }
+  header.bar h1 { font-size: 15px; font-weight: 600; }
+  header.bar .spacer { flex: 1; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border-subtle);
+    background: var(--card); color: var(--text-2); font: inherit; font-size: 12px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn:hover { background: var(--elevated); color: var(--text); }
+  .btn.primary { background: var(--accent); color: #0c0a09; border-color: transparent; font-weight: 600; }
+  .btn.primary:hover { background: var(--accent-hover); }
+  .btn.danger:hover { background: rgba(244,63,94,0.12); color: #fda4af; border-color: rgba(244,63,94,0.3); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn .material-symbols-outlined { font-size: 15px; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* ---- list view ---- */
+  .list { display: flex; flex-direction: column; gap: 10px; max-width: 860px; }
+  .item {
+    background: var(--card); border: 1px solid var(--border-subtle);
+    border-radius: 14px; padding: 14px 18px; cursor: pointer;
+    display: flex; align-items: center; gap: 14px; transition: border-color 0.15s;
+  }
+  .item:hover { border-color: var(--border); }
+  .item .icon {
+    width: 36px; height: 36px; border-radius: 10px; background: var(--elevated);
+    display: grid; place-items: center; color: var(--accent); flex-shrink: 0;
+  }
+  .item .body { flex: 1; min-width: 0; }
+  .item .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item .meta { font-size: 12px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+  .item .chev { color: var(--text-3); }
+
+  .empty {
+    border: 1px dashed var(--border); border-radius: 14px; padding: 48px 24px;
+    text-align: center; color: var(--text-3);
+  }
+
+  /* ---- editor view ---- */
+  .editor { display: flex; flex-direction: column; gap: 16px; max-width: 900px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+  .field input, .field textarea {
+    background: var(--elevated); border: 1px solid var(--border-subtle);
+    border-radius: 10px; padding: 10px 12px; color: var(--text);
+    font-family: inherit; font-size: 13px; resize: vertical;
+  }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+  .field textarea.body-editor { font-family: 'JetBrains Mono', monospace; min-height: 320px; line-height: 1.6; }
+  .field .hint { font-size: 11px; color: var(--text-3); }
+
+  .status-bar {
+    display: flex; align-items: center; gap: 10px; font-size: 12px;
+    padding: 10px 14px; border-radius: 10px; background: var(--card);
+    border: 1px solid var(--border-subtle); color: var(--text-2);
+  }
+  .status-bar.ok { color: var(--emerald); }
+  .status-bar.err { color: #fda4af; }
+  .status-bar .material-symbols-outlined { font-size: 16px; }
+
+  /* ---- login ---- */
+  .gate { display: grid; place-items: center; height: 100vh; padding: 24px; }
+  .gate .card {
+    background: var(--surface); border: 1px solid var(--border-subtle);
+    border-radius: 20px; padding: 40px; max-width: 420px; width: 100%; text-align: center;
+  }
+  .gate .mark {
+    width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 18px;
+    background: linear-gradient(135deg, var(--accent), #fbbf24);
+    display: grid; place-items: center; color: #0c0a09; font-weight: 700; font-size: 20px;
+  }
+  .gate h2 { font-size: 18px; margin-bottom: 8px; }
+  .gate p { color: var(--text-3); font-size: 13px; line-height: 1.6; margin-bottom: 24px; }
+  .gate .who { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-2); margin-top: 16px; }
+  .spinner {
+    width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN GATE ============ -->
+<div class="gate" id="gate">
+  <div class="card">
+    <div class="mark">T</div>
+    <h2 id="gateTitle">Portfolio Admin</h2>
+    <p id="gateMsg">Sign in with GitHub to edit posts and projects. Commits are made as you, straight to <code>main</code>.</p>
+    <div id="gateAction">
+      <button class="btn primary" id="loginBtn">
+        <span class="material-symbols-outlined">login</span> Sign in with GitHub
+      </button>
+    </div>
+    <div class="who" id="gateWho"></div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="app" id="app" hidden>
+  <aside>
+    <div class="brand">
+      <div class="mark">T</div>
+      <div>
+        <div class="name">Portfolio Admin</div>
+        <div class="sub" id="repoLabel">thairux.github.io</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-label">Content</div>
+      <button data-view="posts" class="active">
+        <span class="material-symbols-outlined">article</span> Posts
+        <span class="count" id="postCount">0</span>
+      </button>
+      <button data-view="projects">
+        <span class="material-symbols-outlined">folder_special</span> Projects
+        <span class="count" id="projCount">0</span>
+      </button>
+    </nav>
+
+    <div class="foot">
+      Signed in as<br><code id="userLabel">—</code><br><br>
+      Commits go directly to <code>main</code>.<br>
+      Pages rebuilds automatically.
+    </div>
+  </aside>
+
+  <main>
+    <header class="bar">
+      <h1 id="viewTitle">Posts</h1>
+      <div class="spacer"></div>
+      <button class="btn" id="newBtn"><span class="material-symbols-outlined">add</span> New</button>
+      <button class="btn" id="logoutBtn"><span class="material-symbols-outlined">logout</span> Sign out</button>
+    </header>
+
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<script>
+/* ================================================================
+   Config
+================================================================ */
+const OWNER = "thairux";
+const REPO  = "thairux.github.io";
+const BRANCH = "main";
+const AUTH_ORIGIN = "https://thairux-auth.ptmthairu.workers.dev";
+const API = "https://api.github.com";
+
+const COLLECTIONS = {
+  posts:    { dir: "_posts",    label: "Post",    icon: "article" },
+  projects: { dir: "_projects", label: "Project", icon: "folder_special" },
+};
+
+/* ================================================================
+   State + helpers
+================================================================ */
+let token = sessionStorage.getItem("gh_token") || null;
+let user = JSON.parse(sessionStorage.getItem("gh_user") || "null");
+let view = "posts";
+let items = [];          // current collection's file list
+let editing = null;      // { path, name, sha, front, body } when in editor
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+
+async function gh(path, opts = {}) {
+  const res = await fetch(`${API}${path}`, {
+    ...opts,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json",
+      ...(opts.headers || {}),
+    },
+  });
+  if (res.status === 401) { logout(); throw new Error("Session expired — sign in again."); }
+  const data = res.status === 204 ? null : await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.message || `GitHub API ${res.status}`);
+  return data;
+}
+
+/* ---- minimal frontmatter (YAML-ish) parse/serialize ---- */
+function parseFrontmatter(raw) {
+  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  if (!m) return { front: {}, body: raw };
+  const front = {};
+  for (const line of m[1].split(/\r?\n/)) {
+    const t = line.trim();
+    if (!t || t.startsWith("#")) continue;
+    const i = t.indexOf(":");
+    if (i === -1) continue;
+    const key = t.slice(0, i).trim();
+    const val = t.slice(i + 1).trim().replace(/^["']|["']$/g, "");
+    front[key] = val;
+  }
+  return { front, body: m[2] };
+}
+
+function serializeFrontmatter(fields, body) {
+  const lines = ["---"];
+  for (const [k, v] of Object.entries(fields)) {
+    if (v === "" || v == null) continue;
+    lines.push(`${k}: ${/[:#]/.test(String(v)) || v !== String(v).trim() ? `"${v}"` : v}`);
+  }
+  lines.push("---", "");
+  return lines.join("\n") + (body || "");
+}
+
+/* ================================================================
+   Auth
+================================================================ */
+function login() {
+  const w = 560, h = 700;
+  const left = screen.width / 2 - w / 2, top = screen.height / 2 - h / 2;
+  const popup = window.open(`${AUTH_ORIGIN}/auth`, "gh-auth",
+    `width=${w},height=${h},left=${left},top=${top}`);
+
+  function onMsg(e) {
+    if (e.origin !== AUTH_ORIGIN) return;
+    if (e.data?.type === "github-auth-success") {
+      cleanup();
+      token = e.data.token;
+      sessionStorage.setItem("gh_token", token);
+      loadUser().then(showApp);
+    }
+  }
+  function onClose() { cleanup(); if (!token) setGate("Sign in with GitHub", "Cancelled. Try again when ready.", true); }
+  function cleanup() {
+    window.removeEventListener("message", onMsg);
+    clearInterval(poll);
+  }
+  const poll = setInterval(() => { if (popup?.closed) onClose(); }, 500);
+  window.addEventListener("message", onMsg);
+}
+
+async function loadUser() {
+  const res = await fetch(`${API}/user`, { headers: { Authorization: `Bearer ${token}` } });
+  user = await res.json();
+  sessionStorage.setItem("gh_user", JSON.stringify(user));
+}
+
+function logout() {
+  token = null; user = null;
+  sessionStorage.removeItem("gh_token");
+  sessionStorage.removeItem("gh_user");
+  showGate();
+}
+
+function setGate(title, msg, showLogin) {
+  $("#gateTitle").textContent = title;
+  $("#gateMsg").innerHTML = msg;
+  $("#gateWho").textContent = user ? `Signed in as ${user.login}` : "";
+  $("#loginBtn").style.display = showLogin ? "" : "none";
+}
+
+function showGate() {
+  $("#gate").hidden = false;
+  $("#app").hidden = true;
+  setGate("Portfolio Admin",
+    "Sign in with GitHub to edit posts and projects. Commits are made as you, straight to <code>main</code>.", true);
+}
+
+function showApp() {
+  $("#gate").hidden = true;
+  $("#app").hidden = false;
+  $("#userLabel").textContent = user?.login || "—";
+  $("#repoLabel").textContent = `${OWNER}/${REPO}`;
+  switchView("posts");
+}
+
+/* ================================================================
+   Views
+================================================================ */
+function switchView(v) {
+  view = v; editing = null;
+  document.querySelectorAll(".nav button").forEach(b =>
+    b.classList.toggle("active", b.dataset.view === v));
+  $("#viewTitle").textContent = v === "posts" ? "Posts" : "Projects";
+  renderList();
+}
+
+async function loadItems() {
+  const dir = COLLECTIONS[view].dir;
+  const data = await gh(`/repos/${OWNER}/${REPO}/contents/${dir}?ref=${BRANCH}`);
+  items = (data || [])
+    .filter(f => f.name.endsWith(".md"))
+    .map(f => ({ name: f.name, path: f.path, sha: f.sha }));
+  if (view === "posts") $("#postCount").textContent = items.length;
+  else $("#projCount").textContent = items.length;
+}
+
+async function renderList() {
+  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading…</div>`;
+  try {
+    await loadItems();
+  } catch (e) {
+    $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(e.message)}</div>`;
+    return;
+  }
+  if (!items.length) {
+    $("#content").innerHTML = `<div class="empty">No ${view} yet — hit <strong>New</strong> to create one.</div>`;
+    return;
+  }
+  const rows = await Promise.all(items.map(async (it) => {
+    let title = it.name;
+    try {
+      const raw = await gh(`/repos/${OWNER}/${REPO}/contents/${it.path}?ref=${BRANCH}`)
+        .then(d => atob(d.content));
+      title = parseFrontmatter(raw).front.title || it.name.replace(/\.md$/, "");
+    } catch { /* keep filename */ }
+    return `<div class="item" data-path="${esc(it.path)}">
+      <div class="icon"><span class="material-symbols-outlined">${COLLECTIONS[view].icon}</span></div>
+      <div class="body">
+        <div class="title">${esc(title)}</div>
+        <div class="meta">${esc(it.path)}</div>
+      </div>
+      <span class="material-symbols-outlined chev">chevron_right</span>
+    </div>`;
+  }));
+  $("#content").innerHTML = `<div class="list">${rows.join("")}</div>`;
+  $("#content").querySelectorAll(".item").forEach(el =>
+    el.addEventListener("click", () => openEditor(el.dataset.path)));
+}
+
+async function openEditor(path) {
+  const file = await gh(`/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`);
+  const raw = atob(file.content);
+  const { front, body } = parseFrontmatter(raw);
+  editing = { path, sha: file.sha, front, body };
+  renderEditor();
+}
+
+function renderEditor() {
+  const e = editing;
+  if (!e) return renderList();
+  const f = e.front;
+  $("#content").innerHTML = `
+    <div class="editor">
+      <div class="status-bar" id="saveStatus" style="display:none"></div>
+      <div class="field"><label>Title</label>
+        <input id="fTitle" value="${esc(f.title || "")}" placeholder="Post title"></div>
+      <div class="field"><label>Description</label>
+        <input id="fDesc" value="${esc(f.description || "")}" placeholder="One-line summary"></div>
+      <div class="field"><label>Body (markdown)</label>
+        <textarea class="body-editor" id="fBody">${esc(e.body)}</textarea>
+        <div class="hint">Markdown. Frontmatter (${Object.keys(f).filter(k=>!["title","description"].includes(k)).join(", ") || "layout, date"}) is preserved automatically.</div></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn" id="cancelBtn">Cancel</button>
+        <button class="btn primary" id="saveBtn"><span class="material-symbols-outlined">save</span> Commit to main</button>
+      </div>
+    </div>`;
+  $("#cancelBtn").onclick = () => { editing = null; renderList(); };
+  $("#saveBtn").onclick = save;
+}
+
+function status(msg, cls) {
+  const el = $("#saveStatus");
+  el.style.display = "flex";
+  el.className = `status-bar ${cls}`;
+  el.innerHTML = `<span class="material-symbols-outlined">${cls === "ok" ? "check_circle" : cls === "err" ? "error" : "sync"}</span> ${esc(msg)}`;
+}
+
+async function save() {
+  const btn = $("#saveBtn");
+  btn.disabled = true;
+  status("Committing…", "");
+  try {
+    const updated = {
+      ...editing.front,
+      title: $("#fTitle").value,
+      description: $("#fDesc").value || editing.front.description,
+    };
+    const content = serializeFrontmatter(updated, $("#fBody").value);
+    await gh(`/repos/${OWNER}/${REPO}/contents/${editing.path}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        message: `admin: update ${editing.path}`,
+        content: btoa(unescape(encodeURIComponent(content))),
+        sha: editing.sha,
+        branch: BRANCH,
+      }),
+    });
+    status("Committed to main — Pages is rebuilding.", "ok");
+    setTimeout(() => { editing = null; renderList(); }, 1200);
+  } catch (err) {
+    status(err.message, "err");
+    btn.disabled = false;
+  }
+}
+
+async function createNew() {
+  const dir = COLLECTIONS[view].dir;
+  const slug = prompt(`${COLLECTIONS[view].label} file name (e.g. my-new-post):`);
+  if (!slug) return;
+  const isPost = view === "posts";
+  const date = new Date().toISOString().slice(0, 10);
+  const name = isPost ? `${date}-${slug.replace(/\s+/g, "-").toLowerCase()}.md` : `${slug.replace(/\s+/g, "-").toLowerCase()}.md`;
+  const path = `${dir}/${name}`;
+  const body = serializeFrontmatter(
+    isPost
+      ? { layout: "post", title: slug, date, author: "Thairux", permalink: `/${slug}/` }
+      : { layout: "project", title: slug, description: "", order: "9" },
+    "\nWrite here.\n"
+  );
+  try {
+    await gh(`/repos/${OWNER}/${REPO}/contents/${path}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        message: `admin: create ${path}`,
+        content: btoa(unescape(encodeURIComponent(body))),
+        branch: BRANCH,
+      }),
+    });
+    await loadItems();
+    renderList();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+/* ================================================================
+   Wire up
+================================================================ */
+document.querySelectorAll(".nav button").forEach(b =>
+  b.addEventListener("click", () => switchView(b.dataset.view)));
+$("#loginBtn").addEventListener("click", login);
+$("#logoutBtn").addEventListener("click", logout);
+$("#newBtn").addEventListener("click", createNew);
+
+token && user ? showApp() : showGate();
+</script>
+</body>
+</html>
