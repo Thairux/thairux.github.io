@@ -10,7 +10,7 @@ HOSQ is one of the clearest examples of the kind of software I enjoy building: p
 
 ## What HOSQ is
 
-HOSQ is a hospital queue management system that helps patients, staff, and administrators stay aligned across the full patient journey. It supports self-service check-in, role-based dashboards, real-time queue updates, emergency priority handling, and SMS notifications.
+HOSQ is a hospital queue management system that helps patients, staff, and administrators stay aligned across the full patient journey. It supports self-service check-in, role-based dashboards, real-time queue updates, emergency priority handling, and email notifications pushed to patients at every queue transition.
 
 ## Why it matters
 
@@ -29,8 +29,8 @@ The project uses TypeScript on the frontend, Supabase for backend capabilities a
 
 ## Repository and live links
 
-- Live site: [thairux.github.io/hosq](https://thairux.github.io/hosq)
-- Repository: [Thairux/hosq](https://github.com/Thairux/hosq)
+- Live site: [pmuigai-sys.github.io/hosq](https://pmuigai-sys.github.io/hosq)
+- Repository: [pmuigai-sys/hosq](https://github.com/pmuigai-sys/hosq)
 - Original fork source: [pmuigai-sys/hosq](https://github.com/pmuigai-sys/hosq)
 
 ## Why I wanted it in the portfolio
