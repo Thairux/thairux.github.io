@@ -1,0 +1,10 @@
+name = "thairux-auth"
+main = "index.js"
+compatibility_date = "2025-10-01"
+
+# Notes:
+# - The GITHUB_CLIENT_SECRET is NOT here. Add it in the Cloudflare dashboard:
+#   Workers & Pages -> thairux-auth -> Settings -> Variables and Secrets.
+# - The worker subdomain derives from the account: thairux-auth.ptmthairu.workers.dev
+#   The GitHub OAuth app callback MUST be exactly:
+#   https://thairux-auth.ptmthairu.workers.dev/callback

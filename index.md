@@ -3,196 +3,206 @@ layout: default
 title: Home
 ---
 
-{% assign latest_post = site.posts.first %}
-{% assign featured_projects = site.projects | sort: "order" %}
-
-<section class="hero-intro">
-  <div class="hero-copy">
-    <p class="hero-badge">Minimalist modern</p>
-    <h1>Building polished software with warmth, clarity, and character.</h1>
-    <p class="hero-lead">I'm Thairux, and this space brings together selected projects, practical writing, and the kind of product-minded engineering work I want to keep doing more of.</p>
-    <div class="hero-actions">
-      <a href="{{ '/projects/' | relative_url }}" class="button-primary">Explore Projects</a>
-      <a href="{{ '/about/' | relative_url }}" class="button-secondary">About Me</a>
+<section class="hero">
+  <div class="page">
+    <p class="availability">Available for new opportunities</p>
+    <h1>Peter Thairu Muigai — <em>AI-primary developer</em> building intelligent tooling and automation.</h1>
+    <p class="lead">Computer Science graduate with hands-on experience building AI agent tooling, automation systems, and cross-platform developer infrastructure. Currently interning at Pixel Academy, teaching robotics and AI fundamentals to young learners while shipping production-grade developer tools on the side.</p>
+    <div class="actions">
+      <a href="{{ '/projects/' | relative_url }}" class="btn btn-primary">View my work</a>
+      <a href="{{ '/cv/' | relative_url }}" class="btn btn-secondary">Read the CV</a>
     </div>
   </div>
+</section>
 
-  <aside class="hero-panel">
-    <p class="panel-kicker">Current focus</p>
-    <div class="stat-grid">
-      <article class="stat-card">
-        <strong>Full-stack apps</strong>
-        <span>Shipping useful interfaces with reliable backend foundations.</span>
-      </article>
-      <article class="stat-card">
-        <strong>Current stack</strong>
-        <span>JavaScript, Python, Git, APIs, automation, and clean UI systems.</span>
-      </article>
-      <article class="stat-card">
-        <strong>Current focus</strong>
-        <span>Developer tools, polished web experiences, and useful product workflows.</span>
-      </article>
-      <article class="stat-card">
-        <strong>Open to</strong>
-        <span>Collaborations, thoughtful product work, and interesting technical challenges.</span>
-      </article>
+<section class="section">
+  <div class="page">
+    <div class="section-head">
+      <p class="kicker">Skills</p>
+      <h2>The stack I build with</h2>
+      <p>Tools I use daily to ship real systems — not tutorials, working infrastructure.</p>
     </div>
-  </aside>
-</section>
-
-<section class="page-section">
-  <p class="section-eyebrow">Latest highlights</p>
-  <h2 class="section-title">Recent work, stack notes, and what I'm exploring.</h2>
-  <p class="section-intro">A quick snapshot of what's new here right now: the latest note, the tools I reach for most, and the kind of work I want this portfolio to keep reflecting.</p>
-
-  <div class="feature-grid">
-    <article class="feature-card">
-      <div class="feature-card-top">
-        <span class="mini-label">Latest post</span>
+    <div class="skills-grid">
+      <div class="skill-group">
+        <h3>Languages</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">TypeScript</span>
+          <span class="skill-tag">JavaScript</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">SQL</span>
+          <span class="skill-tag">Bash</span>
+        </div>
       </div>
-      {% if latest_post %}
-        <h3>{{ latest_post.title }}</h3>
-        <p>{{ latest_post.excerpt | strip_html | truncate: 160 }}</p>
-        <a href="{{ latest_post.url | relative_url }}" class="text-link">Read the post</a>
-      {% endif %}
-    </article>
-    <article class="feature-card">
-      <div class="feature-card-top">
-        <span class="mini-label">Stack snapshot</span>
+      <div class="skill-group">
+        <h3>Applications &amp; Desktop</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Electron</span>
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">Node.js</span>
+          <span class="skill-tag">REST APIs</span>
+        </div>
       </div>
-      <h3>Tools I use most</h3>
-      <p>JavaScript and Python for building, Git and GitHub for shipping, and a design-first approach to interface polish, structure, and usability.</p>
-      <div class="pill-list compact">
-        <span>JavaScript</span>
-        <span>Python</span>
-        <span>Git</span>
-        <span>UI systems</span>
+      <div class="skill-group">
+        <h3>Data &amp; Storage</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">SQLite</span>
+          <span class="skill-tag">Full-text search</span>
+          <span class="skill-tag">Schema design</span>
+        </div>
       </div>
-    </article>
-    <article class="feature-card">
-      <div class="feature-card-top">
-        <span class="mini-label">Current focus</span>
+      <div class="skill-group">
+        <h3>AI &amp; Agents</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">MCP servers</span>
+          <span class="skill-tag">Local LLMs</span>
+          <span class="skill-tag">Ollama</span>
+          <span class="skill-tag">Agent automation</span>
+          <span class="skill-tag">Prompt engineering</span>
+        </div>
       </div>
-      <h3>HOSQ and practical product systems</h3>
-      <p>Right now I'm especially interested in products like HOSQ that combine real operational needs, real-time updates, and a cleaner experience for the people using them.</p>
-      <a href="{{ '/projects/hosq/' | relative_url }}" class="text-link">View the case study</a>
-    </article>
+      <div class="skill-group">
+        <h3>Engineering practices</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Test-driven</span>
+          <span class="skill-tag">Automation-first</span>
+          <span class="skill-tag">Cross-tool integration</span>
+          <span class="skill-tag">Security-minded</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <h3>Also comfortable with</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Git &amp; GitHub</span>
+          <span class="skill-tag">Jekyll</span>
+          <span class="skill-tag">Cloudflare</span>
+          <span class="skill-tag">ffmpeg</span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="page-section">
-  <p class="section-eyebrow">Selected projects</p>
-  <h2 class="section-title">Projects I want people to open first.</h2>
-  <p class="section-intro">A few focused examples that show how I think about product clarity, technical structure, and building things that feel genuinely useful.</p>
-
-  <div class="project-grid">
-    {% for project in featured_projects limit: 3 %}
-      <article class="project-card">
-        <div class="project-visual {{ project.visual_class | default: 'project-visual-notes' }}">
-          <span class="project-visual-label">{{ project.badge | default: 'Project' }}</span>
-        </div>
-        <div class="card-topline">{{ project.label | default: 'Featured project' }}</div>
-        <h3><a href="{{ project.url | relative_url }}" class="project-title-link">{{ project.title }}</a></h3>
-        <p>{{ project.description }}</p>
-        <div class="pill-list compact">
-          {% for tech in project.technologies limit: 4 %}
-            <span>{{ tech }}</span>
-          {% endfor %}
-        </div>
-        <div class="project-links-inline">
-          <a href="{{ project.url | relative_url }}">Read case study</a>
-          {% if project.demo %}
-            <a href="{{ project.demo }}" target="_blank" rel="noopener noreferrer">Live site</a>
-          {% endif %}
-        </div>
-      </article>
-    {% endfor %}
+<section class="section">
+  <div class="page">
+    <div class="section-head">
+      <p class="kicker">Experience</p>
+      <h2>Where I've worked</h2>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item current">
+        <p class="timeline-role">Intern, Office &amp; Instruction — <span class="org">Pixel Academy</span></p>
+        <p class="timeline-meta">Current · Nakuru, Kenya</p>
+        <ul>
+          <li>Serve as assistant instructor supporting lead instructors in robotics and AI education programs for children and teens</li>
+          <li>Translate complex technical concepts (programming logic, robotics, AI fundamentals) into age-appropriate lessons and hands-on exercises</li>
+          <li>Coordinate day-to-day academy operations: scheduling, learner records, resource preparation, and equipment setup</li>
+          <li>Maintain and troubleshoot the academy's teaching hardware — laptops, robotics kits, and classroom tech</li>
+          <li>Skills gained: technical instruction, curriculum support, mentoring young learners, operational coordination</li>
+        </ul>
+      </div>
+      <div class="timeline-item">
+        <p class="timeline-role">ICT Attachment — <span class="org">Nakuru Teaching &amp; Referral Hospital</span></p>
+        <p class="timeline-meta">3 months · ICT Department</p>
+        <ul>
+          <li>Provided first-line technical support to clinical and administrative staff across hardware, software, and network issues</li>
+          <li>Diagnosed and resolved day-to-day ICT problems to minimize downtime of systems supporting hospital operations</li>
+          <li>Supported routine system maintenance, user account management, and department documentation</li>
+          <li>Collaborated with the ICT team on infrastructure reliability in a high-demand healthcare environment</li>
+        </ul>
+      </div>
+      <div class="timeline-item">
+        <p class="timeline-role">BSc Computer Science — <span class="org">Kabarak University</span></p>
+        <p class="timeline-meta">Final results pending</p>
+        <ul>
+          <li>Core training in software engineering, systems, and problem-solving</li>
+          <li>Computer Networking short-course certification completed alongside degree</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="page-section">
-  <p class="section-eyebrow">Skills & stack</p>
-  <h2 class="section-title">What I use to design, build, and ship.</h2>
-  <div class="feature-grid">
-    <article class="feature-card">
-      <div class="feature-card-top">
-        <span class="mini-label">Frontend</span>
+<section class="section">
+  <div class="page">
+    <div class="section-head">
+      <p class="kicker">Work</p>
+      <h2>Selected projects</h2>
+      <p>Real systems, built and maintained — each one solving a problem I actually had.</p>
+    </div>
+    <div class="projects-grid">
+      <div class="project-card">
+        <span class="badge">Developer infrastructure</span>
+        <h3>Cross-Agent Memory Protocol</h3>
+        <p>An open protocol that lets multiple AI coding assistants share one persistent memory — plans, decisions, and project context follow you across tools instead of resetting each session. Built the core engine, the MCP server, and integrations across three agent platforms. Fully tested, in daily use.</p>
+        <div class="project-stack"><span>TypeScript</span><span>SQLite</span><span>MCP</span><span>FTS</span></div>
+        <span class="project-link">In active development →</span>
       </div>
-      <h3>Interfaces with clarity</h3>
-      <p>I like building interfaces that feel calm, readable, and fast to understand.</p>
-      <div class="pill-list compact">
-        <span>HTML</span>
-        <span>CSS</span>
-        <span>JavaScript</span>
-        <span>TypeScript</span>
+      <div class="project-card">
+        <span class="badge">Desktop application</span>
+        <h3>Local AI Life Agent</h3>
+        <p>A privacy-first desktop agent that runs entirely on local models — remembers everything, generates media (illustrations, voice, comics), and manages personal workflows without any cloud dependency. Full Electron application with media generation pipeline.</p>
+        <div class="project-stack"><span>Electron</span><span>React</span><span>Ollama</span><span>Python</span></div>
+        <span class="project-link">In active development →</span>
       </div>
-    </article>
-    <article class="feature-card">
-      <div class="feature-card-top">
-        <span class="mini-label">Backend</span>
+      <div class="project-card">
+        <span class="badge">Platform</span>
+        <h3>Trading Signals Platform</h3>
+        <p>A full-stack market analysis platform combining a Python backend, signal processing pipeline, and an Electron dashboard for real-time market monitoring and analysis.</p>
+        <div class="project-stack"><span>Python</span><span>Electron</span><span>REST APIs</span></div>
+        <span class="project-link">Shipped →</span>
       </div>
-      <h3>Reliable product logic</h3>
-      <p>For application logic and connected systems, I lean toward tools that support shipping quickly without losing structure.</p>
-      <div class="pill-list compact">
-        <span>Python</span>
-        <span>Supabase</span>
-        <span>APIs</span>
-        <span>Realtime data</span>
+      <div class="project-card">
+        <span class="badge">Automation</span>
+        <h3>Developer Workflow Tooling</h3>
+        <p>A personal suite of skills, hooks, and rules that automate how AI assistants work across my machine — read-enforcement, auto-caching, session handoffs, and context injection. The system that keeps five AI tools in sync with one memory.</p>
+        <div class="project-stack"><span>Bash</span><span>TypeScript</span><span>Automation</span></div>
+        <span class="project-link">Shipped →</span>
       </div>
-    </article>
-    <article class="feature-card">
-      <div class="feature-card-top">
-        <span class="mini-label">Workflow</span>
-      </div>
-      <h3>From idea to delivery</h3>
-      <p>I enjoy the process around the code too: versioning, iteration, writing, and refining product direction over time.</p>
-      <div class="pill-list compact">
-        <span>Git</span>
-        <span>GitHub</span>
-        <span>Automation</span>
-        <span>Technical writing</span>
-      </div>
-    </article>
+    </div>
   </div>
 </section>
 
-<section class="page-section">
-  <p class="section-eyebrow">Contact</p>
-  <h2 class="section-title">Open to useful work and thoughtful collaboration.</h2>
-  <div class="content-grid">
-    <article class="surface-card">
-      <h2>What I'm interested in</h2>
-      <ul class="styled-list">
-        <li>Full-stack product engineering work</li>
-        <li>Developer tooling and workflow automation</li>
-        <li>UI refinement for products that need more clarity and polish</li>
-        <li>Interesting collaborations with practical real-world use</li>
-      </ul>
-    </article>
-    <article class="surface-card">
-      <h2>Reach out</h2>
-      <p>If you'd like to talk about a project, collaboration, or role, you can reach me through GitHub, Twitter, or the rest of the social profiles linked here.</p>
-      <div class="hero-actions contact-actions">
-        {% if site.social_profiles.github != blank %}
-          <a href="{{ site.social_profiles.github }}" class="button-primary" target="_blank" rel="noopener noreferrer">GitHub</a>
-        {% endif %}
-        {% if site.social_profiles.twitter != blank %}
-          <a href="{{ site.social_profiles.twitter }}" class="button-secondary" target="_blank" rel="noopener noreferrer">Twitter</a>
-        {% endif %}
-        {% if site.social_profiles.instagram != blank %}
-          <a href="{{ site.social_profiles.instagram }}" class="button-secondary" target="_blank" rel="noopener noreferrer">Instagram</a>
-        {% endif %}
-        {% if site.social_profiles.facebook != blank %}
-          <a href="{{ site.social_profiles.facebook }}" class="button-secondary" target="_blank" rel="noopener noreferrer">Facebook</a>
-        {% endif %}
-        {% if site.social_profiles.threads != blank %}
-          <a href="{{ site.social_profiles.threads }}" class="button-secondary" target="_blank" rel="noopener noreferrer">Threads</a>
-        {% endif %}
-        {% if site.social_profiles.steam != blank %}
-          <a href="{{ site.social_profiles.steam }}" class="button-secondary" target="_blank" rel="noopener noreferrer">Steam</a>
-        {% endif %}
-        <a href="{{ '/blog/' | relative_url }}" class="button-secondary">Read the Blog</a>
+<section class="section">
+  <div class="page">
+    <div class="now-panel">
+      <div class="now-head">
+        <h3><span class="pulse"></span> Currently building</h3>
+        <time>Updated continuously</time>
       </div>
-    </article>
+      <div class="now-body">
+        <ul>
+          <li>Formalizing the cross-agent memory protocol for public release as an open standard</li>
+          <li>Building the media generation pipeline for the local AI agent — illustrations and voice synthesis</li>
+          <li>Teaching robotics and AI fundamentals at Pixel Academy while continuing to ship</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="page">
+    <div class="section-head">
+      <p class="kicker">Contact</p>
+      <h2>Get in touch</h2>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-card">
+        <p class="label">Email</p>
+        <p class="value">ptmthairu@gmail.com</p>
+      </div>
+      <div class="contact-card">
+        <p class="label">Phone</p>
+        <p class="value">0715 538 259</p>
+      </div>
+      <div class="contact-card">
+        <p class="label">Location</p>
+        <p class="value">Lanet, Nakuru, Kenya</p>
+      </div>
+      <div class="contact-card">
+        <p class="label">GitHub</p>
+        <p class="value">{{ site.social_profiles.github }}</p>
+      </div>
+    </div>
   </div>
 </section>

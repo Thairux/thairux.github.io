@@ -2,39 +2,41 @@
 layout: default
 ---
 
-<article class="project-detail">
-  <header class="project-header">
-    <p class="section-eyebrow">Case Study</p>
+<section class="article-head">
+  <div class="page">
+    <p class="kicker">Case study</p>
     <h1>{{ page.title }}</h1>
     {% if page.description %}
-      <p class="project-description">{{ page.description }}</p>
+    <p class="lead">{{ page.description }}</p>
     {% endif %}
     {% if page.forked_from %}
-      <p class="project-meta-note">Fork lineage: <a href="{{ page.forked_from }}" target="_blank" rel="noopener noreferrer">{{ page.forked_from }}</a></p>
+    <p class="project-meta-note">Fork lineage: <a href="{{ page.forked_from }}" target="_blank" rel="noopener noreferrer">{{ page.forked_from }}</a></p>
     {% endif %}
-  </header>
+  </div>
+</section>
 
-  <div class="project-content">
+<div class="page" style="padding-bottom: 80px;">
+  <div class="article-body">
     {{ content }}
   </div>
 
   {% if page.technologies %}
-    <div class="project-technologies">
-      <h3>Technologies Used</h3>
-      <div class="technologies">
-        {% for tech in page.technologies %}
-          <span class="tech-tag">{{ tech }}</span>
-        {% endfor %}
-      </div>
+  <div class="project-technologies">
+    <h3>Technologies used</h3>
+    <div class="technologies">
+      {% for tech in page.technologies %}
+      <span class="tech-tag">{{ tech }}</span>
+      {% endfor %}
     </div>
+  </div>
   {% endif %}
 
   <div class="project-links">
     {% if page.github %}
-      <a href="{{ page.github }}" class="project-link" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+    <a href="{{ page.github }}" class="project-link" target="_blank" rel="noopener noreferrer">View on GitHub</a>
     {% endif %}
     {% if page.demo %}
-      <a href="{{ page.demo }}" class="project-link" target="_blank" rel="noopener noreferrer">Live Demo</a>
+    <a href="{{ page.demo }}" class="project-link" target="_blank" rel="noopener noreferrer">Live demo</a>
     {% endif %}
   </div>
-</article>
+</div>

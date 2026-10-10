@@ -11,8 +11,8 @@ technologies:
   - "CSS"
   - "JavaScript"
   - "GitHub Pages"
-github: "https://github.com/Thairux/.me"
-demo: "https://thairux.github.io/.me/"
+github: "https://github.com/Thairux/thairux.github.io"
+demo: "https://thairux.github.io/"
 ---
 
 This portfolio is designed to be a clear front door for my work. It combines selected projects, technical writing, and a warmer visual direction that feels more personal than a generic developer template.

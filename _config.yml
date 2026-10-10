@@ -1,16 +1,24 @@
-title: Thairux
-description: Personal portfolio website
+title: Peter Thairu Muigai
+description: AI-primary developer building intelligent tooling and automation — cross-agent memory protocols, local AI agents, and developer infrastructure.
 url: "https://thairux.github.io"
 baseurl: ""
-theme: minima
 
 author:
-  name: Thairux
-  email: thairux@example.com
+  name: Peter Thairu Muigai
+  email: ptmthairu@gmail.com
+  location: Lanet, Nakuru, Kenya
 
-social_links:
-  github: Thairux
-  twitter: Peterptm1
+navigation:
+  - name: Home
+    url: /
+  - name: About
+    url: /about/
+  - name: Work
+    url: /projects/
+  - name: Writing
+    url: /blog/
+  - name: CV
+    url: /cv/
 
 social_profiles:
   github: "https://github.com/Thairux"

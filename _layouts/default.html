@@ -3,82 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
-  <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | strip_newlines }}">
-  <meta name="theme-color" content="#8b5d45">
-  <title>{{ page.title }} - {{ site.title }}</title>
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="{{ site.description }}">
+  <meta name="theme-color" content="#13151b">
+  <title>{% if page.title and page.title != 'Home' %}{{ page.title }} — {% endif %}Peter Thairu Muigai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
-  <link rel="shortcut icon" href="{{ '/assets/favicon.svg' | relative_url }}">
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
-  <script src="{{ '/assets/js/main.js' | relative_url }}" defer></script>
 </head>
-<body class="{% if page.url == '/' %}home-page{% endif %}">
-  <div class="page-glow page-glow-left"></div>
-  <div class="page-glow page-glow-right"></div>
+<body>
 
   <header class="site-header">
-    <div class="container site-header-inner">
+    <div class="page">
       <a href="{{ '/' | relative_url }}" class="brand">
-        <span class="brand-mark">T</span>
-        <span class="brand-copy">
-          <strong>{{ site.title }}</strong>
-          <small>{{ site.description }}</small>
-        </span>
+        <span class="mark">T</span>
+        <span>{{ site.title }}</span>
       </a>
-
-      <div class="header-controls">
-        <nav class="site-nav" aria-label="Primary">
-          <a href="{{ '/' | relative_url }}">Home</a>
-          <a href="{{ '/about/' | relative_url }}">About</a>
-          <a href="{{ '/projects/' | relative_url }}">Projects</a>
-          <a href="{{ '/blog/' | relative_url }}">Blog</a>
-        </nav>
-        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle color theme">
-          <span class="theme-toggle-icon" aria-hidden="true">◐</span>
-          <span class="theme-toggle-label">Auto</span>
-        </button>
-      </div>
+      <nav class="site-nav">
+        <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}class="active"{% endif %}>Home</a>
+        <a href="{{ '/about/' | relative_url }}" {% if page.url == '/about/' %}class="active"{% endif %}>About</a>
+        <a href="{{ '/projects/' | relative_url }}" {% if page.url == '/projects/' %}class="active"{% endif %}>Work</a>
+        <a href="{{ '/blog/' | relative_url }}" {% if page.url == '/blog/' %}class="active"{% endif %}>Writing</a>
+        <a href="{{ '/cv/' | relative_url }}" {% if page.url == '/cv/' %}class="active"{% endif %}>CV</a>
+      </nav>
     </div>
   </header>
 
-  <main class="site-main">
-    <div class="container">
-      <section class="page-frame {% if page.url == '/' %}page-frame-home{% endif %}">
-        {{ content }}
-      </section>
-    </div>
-  </main>
+  {{ content }}
 
   <footer class="site-footer">
-    <div class="container site-footer-inner">
-      <div>
-        <p class="footer-title">{{ site.title }}</p>
-        <p class="footer-copy">Built with love by Peter Thairu Muigai.</p>
-      </div>
-      <div class="footer-links">
-        {% if site.social_profiles.github != blank %}
-          <a href="{{ site.social_profiles.github }}" target="_blank" rel="noopener noreferrer">GitHub</a>
-        {% endif %}
-        {% if site.social_profiles.twitter != blank %}
-          <a href="{{ site.social_profiles.twitter }}" target="_blank" rel="noopener noreferrer">Twitter</a>
-        {% endif %}
-        {% if site.social_profiles.instagram != blank %}
-          <a href="{{ site.social_profiles.instagram }}" target="_blank" rel="noopener noreferrer">Instagram</a>
-        {% endif %}
-        {% if site.social_profiles.facebook != blank %}
-          <a href="{{ site.social_profiles.facebook }}" target="_blank" rel="noopener noreferrer">Facebook</a>
-        {% endif %}
-        {% if site.social_profiles.threads != blank %}
-          <a href="{{ site.social_profiles.threads }}" target="_blank" rel="noopener noreferrer">Threads</a>
-        {% endif %}
-        {% if site.social_profiles.discord != blank %}
-          <a href="{{ site.social_profiles.discord }}" target="_blank" rel="noopener noreferrer">Discord</a>
-        {% endif %}
-        {% if site.social_profiles.steam != blank %}
-          <a href="{{ site.social_profiles.steam }}" target="_blank" rel="noopener noreferrer">Steam</a>
-        {% endif %}
+    <div class="page">
+      <p>&copy; {{ 'now' | date: "%Y" }} Peter Thairu Muigai — built with Jekyll, updated continuously.</p>
+      <div class="social-links">
+        {% if site.social_profiles.github != blank %}<a href="{{ site.social_profiles.github }}" target="_blank" rel="noopener noreferrer">GitHub</a>{% endif %}
+        {% if site.social_profiles.twitter != blank %}<a href="{{ site.social_profiles.twitter }}" target="_blank" rel="noopener noreferrer">X</a>{% endif %}
+        {% if site.social_profiles.instagram != blank %}<a href="{{ site.social_profiles.instagram }}" target="_blank" rel="noopener noreferrer">Instagram</a>{% endif %}
+        {% if site.social_profiles.facebook != blank %}<a href="{{ site.social_profiles.facebook }}" target="_blank" rel="noopener noreferrer">Facebook</a>{% endif %}
+        {% if site.social_profiles.threads != blank %}<a href="{{ site.social_profiles.threads }}" target="_blank" rel="noopener noreferrer">Threads</a>{% endif %}
+        {% if site.social_profiles.discord != blank %}<a href="{{ site.social_profiles.discord }}" target="_blank" rel="noopener noreferrer">Discord</a>{% endif %}
+        {% if site.social_profiles.steam != blank %}<a href="{{ site.social_profiles.steam }}" target="_blank" rel="noopener noreferrer">Steam</a>{% endif %}
       </div>
     </div>
   </footer>
+
 </body>
 </html>

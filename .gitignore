@@ -7,3 +7,4 @@ Gemfile.lock
 copilot-session-*.md
 mcp/__pycache__/
 *.pyc
+worker/.wrangler/

@@ -2,23 +2,23 @@
 layout: default
 ---
 
-<article class="post">
-  <header class="post-header">
-    <p class="section-eyebrow">Journal</p>
+<section class="article-head">
+  <div class="page">
+    <p class="kicker">Journal</p>
     <h1>{{ page.title }}</h1>
     <div class="post-meta">
       <time datetime="{{ page.date | date: '%Y-%m-%d' }}">{{ page.date | date: "%B %d, %Y" }}</time>
-      {% if page.author %}
-        <span class="post-author">by {{ page.author }}</span>
-      {% endif %}
+      {% if page.author %}<span>by {{ page.author }}</span>{% endif %}
     </div>
-  </header>
+  </div>
+</section>
 
-  <div class="post-content">
+<div class="page" style="padding-bottom: 80px;">
+  <div class="article-body">
     {{ content }}
   </div>
 
   <footer class="post-footer">
-    <a href="{{ '/blog/' | relative_url }}" class="back-link">← Back to Blog</a>
+    <a href="{{ '/blog/' | relative_url }}" class="back-link">← Back to writing</a>
   </footer>
-</article>
+</div>

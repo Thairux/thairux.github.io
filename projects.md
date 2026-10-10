@@ -4,69 +4,52 @@ title: Projects
 permalink: /projects/
 ---
 
-<section class="page-section">
-  <p class="section-eyebrow">Projects</p>
-  <h1>Selected work and experiments.</h1>
-  <p class="section-intro">A few highlights that reflect how I like to build: practical ideas, clean presentation, and a bias toward tools that are genuinely useful.</p>
-
-  <div class="project-grid">
-    {% assign sorted_projects = site.projects | sort: "order" %}
-    {% for project in sorted_projects %}
-      <article class="project-card">
-        <div class="project-visual {{ project.visual_class | default: 'project-visual-notes' }}">
-          <span class="project-visual-label">{{ project.badge | default: 'Project' }}</span>
-        </div>
-        <div class="card-topline">{{ project.label | default: 'Featured project' }}</div>
-        <h2><a href="{{ project.url | relative_url }}" class="project-title-link">{{ project.title }}</a></h2>
-        <p>{{ project.description }}</p>
-        {% if project.technologies %}
-          <div class="pill-list compact">
-            {% for tech in project.technologies limit: 4 %}
-              <span>{{ tech }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-        <div class="project-links-inline">
-          <a href="{{ project.url | relative_url }}">Case Study</a>
-          {% if project.demo %}
-            <a href="{{ project.demo }}" target="_blank" rel="noopener noreferrer">Live Site</a>
-          {% endif %}
-          {% if project.github %}
-            <a href="{{ project.github }}" target="_blank" rel="noopener noreferrer">Repository</a>
-          {% endif %}
-        </div>
-      </article>
-    {% endfor %}
+<section class="article-head">
+  <div class="page">
+    <p class="kicker" style="font-family: var(--mono); font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em;">Work</p>
+    <h1>Projects</h1>
+    <p class="lead">Real systems, built and maintained. Each one exists because I had the problem myself.</p>
   </div>
 </section>
 
-<section class="page-section">
-  <p class="section-eyebrow">Featured repositories</p>
-  <h2 class="section-title">Open source work worth opening first.</h2>
-  <div class="feature-grid">
-    <article class="feature-card">
-      <div class="feature-card-top">
-        <span class="mini-label">Live now</span>
-      </div>
-      <h3>HOSQ</h3>
-      <p>A real-time hospital queue management system with patient self-service, staff workflows, and queue visibility designed for practical use.</p>
-      <a href="https://github.com/Thairux/hosq" class="text-link" target="_blank" rel="noopener noreferrer">View repository</a>
-    </article>
-    <article class="feature-card">
-      <div class="feature-card-top">
-        <span class="mini-label">Portfolio</span>
-      </div>
-      <h3>.me</h3>
-      <p>This portfolio repository tracks the site itself, including layout refinements, writing structure, and the visual direction of the personal brand.</p>
-      <a href="https://github.com/Thairux/.me" class="text-link" target="_blank" rel="noopener noreferrer">Open repository</a>
-    </article>
-    <article class="feature-card">
-      <div class="feature-card-top">
-        <span class="mini-label">More work</span>
-      </div>
-      <h3>GitHub profile</h3>
-      <p>Browse additional experiments, works in progress, and supporting repositories that show the broader range of ideas under development.</p>
-      <a href="https://github.com/Thairux" class="text-link" target="_blank" rel="noopener noreferrer">Explore GitHub</a>
-    </article>
+<div class="page" style="padding-bottom: 80px;">
+  <div class="projects-grid">
+
+    <div class="project-card">
+      <span class="badge">Developer infrastructure</span>
+      <h3>Cross-Agent Memory Protocol</h3>
+      <p>An open protocol that lets multiple AI coding assistants share one persistent memory — plans, decisions, and project context follow you across tools instead of resetting each session.</p>
+      <p>Built the core engine with a compressed knowledge store (symbol counts and content hashes rather than full text overhead), the protocol server exposing the memory as standard tools, and integrations across three agent platforms. Full-text search, version history, and change tracking. Fully tested, shipped, and in daily use.</p>
+      <div class="project-stack"><span>TypeScript</span><span>SQLite</span><span>Full-text search</span><span>MCP</span></div>
+      <span class="project-link">In active development →</span>
+    </div>
+
+    <div class="project-card">
+      <span class="badge">Desktop application</span>
+      <h3>Local AI Life Agent</h3>
+      <p>A privacy-first desktop agent that runs entirely on local models — remembers everything, generates media, and manages personal workflows without any cloud dependency.</p>
+      <p>Complete Electron application with an embedded agent runtime, local LLM inference, and a media generation pipeline covering illustrations, voice synthesis, and comic layouts. Includes a boot-level health gate that verifies the local stack is usable before the app starts.</p>
+      <div class="project-stack"><span>Electron</span><span>React</span><span>TypeScript</span><span>Ollama</span></div>
+      <span class="project-link">In active development →</span>
+    </div>
+
+    <div class="project-card">
+      <span class="badge">Platform</span>
+      <h3>Trading Signals Platform</h3>
+      <p>A full-stack market analysis platform combining a Python backend, signal processing pipeline, and an Electron dashboard for real-time market monitoring and analysis.</p>
+      <p>Backend ingests and normalizes market data, applies signal strategies, and serves results through a REST API consumed by the desktop dashboard.</p>
+      <div class="project-stack"><span>Python</span><span>Electron</span><span>REST APIs</span></div>
+      <span class="project-link">Shipped →</span>
+    </div>
+
+    <div class="project-card">
+      <span class="badge">Automation</span>
+      <h3>Developer Workflow Tooling</h3>
+      <p>A personal suite of skills, hooks, and rules that automate how AI assistants work across my machine — read-enforcement, auto-caching, session handoffs, and context injection.</p>
+      <p>The system that keeps five separate AI tools in sync with one shared memory, enforces safe file practices, and automates context capture between sessions. The tooling behind almost everything else on this list.</p>
+      <div class="project-stack"><span>Bash</span><span>TypeScript</span><span>Automation</span><span>Hooks</span></div>
+      <span class="project-link">Shipped →</span>
+    </div>
+
   </div>
-</section>
+</div>
