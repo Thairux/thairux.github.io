@@ -272,7 +272,7 @@ async function gh(path, opts = {}) {
   const res = await fetch(`${API}${path}`, {
     ...opts,
     headers: {
-      Authorization: *** ${token}`,
+      Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
       "Content-Type": "application/json",
       ...(opts.headers || {}),
@@ -339,7 +339,7 @@ function login() {
 }
 
 async function loadUser() {
-  const res = await fetch(`${API}/user`, { headers: { Authorization: *** ${token}` } });
+  const res = await fetch(`${API}/user`, { headers: { Authorization: `Bearer ${token}` } });
   user = await res.json();
   sessionStorage.setItem("gh_user", JSON.stringify(user));
 }
