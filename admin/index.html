@@ -26,6 +26,11 @@
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
 
+  /* Class selectors below set display:grid on .gate/.app, which would
+     otherwise override the [hidden] attribute's UA display:none — so the
+     sign-in gate stayed visible on top of the app after login. Force it. */
+  [hidden] { display: none !important; }
+
   .app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; }
   aside {
     background: var(--surface); border-right: 1px solid var(--border-subtle);
