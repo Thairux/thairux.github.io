@@ -401,91 +401,120 @@ function showApp() {
    Supports: nested maps, lists of maps, lists of scalars, block scalars (>-).
 ================================================================ */
 function parseYaml(text) {
-  const lines = text.split(/\r?\n/);
-  const root = {};
-  // stack of { indent, container, parent, key }
-  const stack = [{ indent: -1, container: root }];
+  // Correct indentation-based parser for the cv.yml subset: nested maps,
+  // lists of maps, lists of scalars (quoted or not), and block scalars (>-).
+  // The previous stack-machine version collapsed "- key: value" list items
+  // into a single object, so `experience` parsed as a map, not an array.
+  const lines = text.split(/\r?\n/).map((l) => {
+    const indent = l.match(/^\s*/)[0].length;
+    return { indent, text: l.trim(), raw: l };
+  }).filter((l) => l.text && !l.text.startsWith("#"));
 
-  function top() { return stack[stack.length - 1]; }
+  let pos = 0;
 
-  for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i];
-    if (!raw.trim() || raw.trim().startsWith("#")) continue;
+  function parseBlock(minIndent) {
+    // Decide map vs list from the first line at this indent.
+    if (pos >= lines.length) return null;
+    const first = lines[pos];
+    if (first.indent < minIndent) return null;
+    if (first.text.startsWith("- ") || first.text === "-") {
+      return parseList(first.indent);
+    }
+    return parseMap(first.indent);
+  }
 
-    const indent = raw.match(/^\s*/)[0].length;
-    const t = raw.trim();
-
-    // pop stack to current indent
-    while (stack.length > 1 && indent <= top().indent) stack.pop();
-
-    // list item: "- " or "-"
-    if (t.startsWith("- ") || t === "-") {
-      const content = t === "-" ? "" : t.slice(2).trim();
-      const parent = top().container;
-      // parent is a map whose last key holds an array — find it
-      const keys = Object.keys(parent);
-      if (!keys.length) continue;
-      const lastKey = keys[keys.length - 1];
-      if (!Array.isArray(parent[lastKey])) parent[lastKey] = [];
-
+  function parseList(indent) {
+    const arr = [];
+    while (pos < lines.length) {
+      const line = lines[pos];
+      if (line.indent < indent) break;
+      if (line.indent > indent) break; // shouldn't happen at list level
+      if (!(line.text.startsWith("- ") || line.text === "-")) break;
+      const content = line.text === "-" ? "" : line.text.slice(2).trim();
+      pos++;
       if (content === "") {
-        // map item follows on next lines
+        // map item whose keys follow on subsequent, more-indented lines
+        const item = parseMap(indent + 1);
+        arr.push(item || {});
+      } else if (!isQuoted(content) && scalarHasKey(content)) {
+        // "- key: value" — first key inline, rest follow indented under it
         const obj = {};
-        parent[lastKey].push(obj);
-        stack.push({ indent: indent, container: obj, isMapItem: true });
-      } else if (content.includes(":")) {
-        // "- key: value" inline map start
-        const obj = {};
-        parent[lastKey].push(obj);
         const ci = content.indexOf(":");
         const k = content.slice(0, ci).trim();
         const v = content.slice(ci + 1).trim();
+        // keys of this item sit at indent + 2 (the column after "- ")
+        const itemIndent = indent + 2;
         if (v === "") {
-          obj[k] = {};
-          stack.push({ indent: indent + 2, container: obj[k], isMapItem: true });
+          obj[k] = parseBlock(itemIndent + 1);
         } else {
           obj[k] = stripQuotes(v);
-          stack.push({ indent: indent, container: obj, isMapItem: true });
         }
+        // remaining keys of the same map item
+        while (pos < lines.length && lines[pos].indent >= itemIndent &&
+               !(lines[pos].text.startsWith("- ") || lines[pos].text === "-")) {
+          const extra = parseMapEntry(obj, itemIndent);
+          if (!extra) break;
+        }
+        arr.push(obj);
       } else {
-        parent[lastKey].push(stripQuotes(content));
+        arr.push(stripQuotes(content));
       }
-      continue;
     }
+    return arr;
+  }
 
-    // key: value
-    const ci = t.indexOf(":");
-    if (ci === -1) continue;
-    const key = t.slice(0, ci).trim();
-    const val = t.slice(ci + 1).trim();
-
-    const container = top().container;
+  function parseMapEntry(container, indent) {
+    const line = lines[pos];
+    if (line.indent !== indent) return false;
+    const ci = line.text.indexOf(":");
+    if (ci === -1) { pos++; return true; }
+    const key = line.text.slice(0, ci).trim();
+    let val = line.text.slice(ci + 1).trim();
+    pos++;
     if (val === "") {
-      container[key] = {};
-      stack.push({ indent: indent, container: container[key] });
+      container[key] = parseBlock(indent + 1);
     } else if (val === ">-") {
-      // block scalar — read until next line with <= indent that is a key
       const buf = [];
-      let j = i + 1;
-      while (j < lines.length) {
-        const l = lines[j];
-        if (!l.trim()) { buf.push(""); j++; continue; }
-        const li = l.match(/^\s*/)[0].length;
-        if (li <= indent) break;
-        buf.push(l.trim());
-        j++;
+      while (pos < lines.length && lines[pos].indent > indent) {
+        buf.push(lines[pos].text); pos++;
       }
       container[key] = buf.join(" ").trim();
-      i = j - 1;
     } else {
       container[key] = stripQuotes(val);
     }
+    return true;
   }
-  return root;
+
+  function parseMap(indent) {
+    const obj = {};
+    while (pos < lines.length) {
+      const line = lines[pos];
+      if (line.indent < indent) break;
+      if (line.indent > indent) break;
+      if (line.text.startsWith("- ") || line.text === "-") break;
+      parseMapEntry(obj, indent);
+    }
+    return obj;
+  }
+
+  // A "- key: value" scalar only when the colon is a real key separator
+  // (followed by a space or end), not a colon inside a quoted string.
+  function scalarHasKey(s) {
+    if (isQuoted(s)) return false;
+    const m = s.match(/^[^:]+:(\s|$)/);
+    return !!m;
+  }
+
+  return parseMap(0) || {};
 }
 
 function stripQuotes(v) {
   return v.replace(/^["']|["']$/g, "");
+}
+
+function isQuoted(v) {
+  return v.length >= 2 && ((v[0] === '"' && v[v.length - 1] === '"') ||
+                           (v[0] === "'" && v[v.length - 1] === "'"));
 }
 
 function toYaml(value, indent = 0) {
