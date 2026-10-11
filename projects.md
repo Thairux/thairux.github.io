@@ -16,6 +16,15 @@ permalink: /projects/
   <div class="projects-grid">
 
     <div class="project-card">
+      <span class="badge">Open source</span>
+      <h3>SGM — Shared Global Memory</h3>
+      <p>An open protocol for persistent, interoperable memory between AI agents and software tools. Protocol-first: a specification, JSON schemas, a conformance suite, and a reference implementation, all transport-independent — so any conforming tool can exchange context with any other.</p>
+      <p>Four strictly-separated layers (specification → schemas → conformance → reference). Provenance is core, scope isolation is mandatory, and "global" means shared across your tools — never world-readable. 14 spec docs, 5 schemas, 44 conformance tests. <a href="{{ '/projects/sgm/' | relative_url }}">Read the case study →</a></p>
+      <div class="project-stack"><span>Protocol Design</span><span>JSON Schema</span><span>MCP</span><span>TypeScript</span><span>AGPL-3.0</span></div>
+      <span class="project-link">Shipped →</span>
+    </div>
+
+    <div class="project-card">
       <span class="badge">Developer infrastructure</span>
       <h3>Cross-Agent Memory Protocol</h3>
       <p>An open protocol that lets multiple AI coding assistants share one persistent memory — plans, decisions, and project context follow you across tools instead of resetting each session.</p>

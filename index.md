@@ -131,6 +131,13 @@ title: Home
     </div>
     <div class="projects-grid">
       <div class="project-card">
+        <span class="badge">Open source</span>
+        <h3>SGM — Shared Global Memory</h3>
+        <p>An open protocol for persistent, interoperable memory between AI agents and software tools — so context follows you across tools instead of resetting each session. Protocol-first design: specification, JSON schemas, a conformance suite, and a reference implementation, all transport-independent.</p>
+        <div class="project-stack"><span>Protocol Design</span><span>JSON Schema</span><span>MCP</span><span>TypeScript</span><span>AGPL-3.0</span></div>
+        <span class="project-link">Shipped →</span>
+      </div>
+      <div class="project-card">
         <span class="badge">Developer infrastructure</span>
         <h3>Cross-Agent Memory Protocol</h3>
         <p>An open protocol that lets multiple AI coding assistants share one persistent memory — plans, decisions, and project context follow you across tools instead of resetting each session. Built the core engine, the MCP server, and integrations across three agent platforms. Fully tested, in daily use.</p>
