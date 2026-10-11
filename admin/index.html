@@ -345,9 +345,21 @@ function login() {
 }
 
 async function loadUser() {
-  const res = await fetch(`${API}/user`, { headers: { Authorization: `Bearer ${token}` } });
-  user = await res.json();
-  sessionStorage.setItem("gh_user", JSON.stringify(user));
+  try {
+    const res = await fetch(`${API}/user`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) {
+      user = await res.json();
+      sessionStorage.setItem("gh_user", JSON.stringify(user));
+    } else {
+      // Token is valid enough to have arrived; surface a minimal identity so
+      // the app still opens instead of stranding the user on the gate.
+      user = { login: "github-user" };
+      console.warn("GitHub /user returned", res.status);
+    }
+  } catch (err) {
+    user = { login: "github-user" };
+    console.warn("GitHub /user fetch failed:", err);
+  }
 }
 
 function logout() {
