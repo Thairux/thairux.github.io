@@ -1,29 +1,29 @@
 ---
 layout: post
-title: "Daily Digest — Oct 10: TKC v2 Shared Brain, Security Guard, and Global Board"
-date: 2026-10-10 20:00:00 +0000
-author: "Thairux"
+title: "Daily Digest  Oct 10: TKC v2 Shared Brain, Security Guard, and Global Board"
+date: "2026-10-10 20:00:00 +0000"
+author: Thairux
 permalink: /daily-digest-oct-10/
+description: daily digest oct 10
 ---
-
-A quiet Saturday of deep work on the cross-agent memory subsystem. No new project starts — just sharp, focused commits pushing the foundation layer forward.
+A quiet Saturday of deep work on the cross-agent memory subsystem. No new project starts â just sharp, focused commits pushing the foundation layer forward.
 
 ## TKC v2: Shared Brain goes live
 
 The biggest milestone landed today: **TKC v2: Shared Brain**, a single commit that introduces the core primitives that let multiple AI assistants share one persistent memory instead of resetting each session.
 
-This isn't scaffolding — it's the engine. The commit touches twenty source files and ships four fully new subsystems:
+This isn't scaffolding â it's the engine. The commit touches twenty source files and ships four fully new subsystems:
 
-- **Comments** — threaded notes anchored to files, queries, or symbols
-- **Symbols** — a persistent index of functions, classes, and declarations across tools
-- **History** — append-only event log for all memory mutations
-- **Write-through** — changes made by any tool propagate into shared storage
-- **Rules** — enforced policies (read-enforcement, auto-caching, handoffs)
-- **Fingerprint** — content identity and change detection
-- **Board** — a global message board for cross-tool visibility
-- **Handoffs** — session-to-session context transfer
+- **Comments** â threaded notes anchored to files, queries, or symbols
+- **Symbols** â a persistent index of functions, classes, and declarations across tools
+- **History** â append-only event log for all memory mutations
+- **Write-through** â changes made by any tool propagate into shared storage
+- **Rules** â enforced policies (read-enforcement, auto-caching, handoffs)
+- **Fingerprint** â content identity and change detection
+- **Board** â a global message board for cross-tool visibility
+- **Handoffs** â session-to-session context transfer
 
-The test suite came along for the ride: **board.test.ts**, **comments.test.ts**, **diff.test.ts**, **docs.test.ts**, and **export.test.ts** — forty tests, all green. The README was rewritten to match the new shape.
+The test suite came along for the ride: **board.test.ts**, **comments.test.ts**, **diff.test.ts**, **docs.test.ts**, and **export.test.ts** â forty tests, all green. The README was rewritten to match the new shape.
 
 ## Security hardening: path guard
 
@@ -37,11 +37,11 @@ The write module was extended to route every mutation through the guard, and **p
 
 ## Global message board
 
-A third commit extended the board from a local scratch space into a **global message board** — 690 insertions across `board.ts`, `server.ts`, and a new `board-global.test.ts`. This is the cross-tool visibility layer that lets assistants leave structured notes for whatever shows up next, wherever it runs.
+A third commit extended the board from a local scratch space into a **global message board** â 690 insertions across `board.ts`, `server.ts`, and a new `board-global.test.ts`. This is the cross-tool visibility layer that lets assistants leave structured notes for whatever shows up next, wherever it runs.
 
 ## DB fork fix + debug surface
 
-A smaller infra fix made the bundled database the unconditional default while exposing a `TKC_DEBUG` flag that surfaces the resolved storage path — the kind of thing that either saves ten minutes or costs ten minutes every day.
+A smaller infra fix made the bundled database the unconditional default while exposing a `TKC_DEBUG` flag that surfaces the resolved storage path â the kind of thing that either saves ten minutes or costs ten minutes every day.
 
 ## Comment CLI refinement
 
@@ -65,4 +65,4 @@ The final commit improved the comment CLI to support the `add` subcommand form p
 
 ---
 
-*This is the architecture layer — invisible to end users, essential to everything that runs on top. Ship it, then build on it.*
+*This is the architecture layer â invisible to end users, essential to everything that runs on top. Ship it, then build on it.*
