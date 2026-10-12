@@ -246,101 +246,50 @@
 /* ================================================================
    Config
 ================================================================ */
-const OWNER = "thairux";
+const OWNER = "Thairux";
 const REPO  = "thairux.github.io";
 const BRANCH = "main";
 const AUTH_ORIGIN = "https://thairux-auth.ptmthairu.workers.dev";
+// SESSION_URL is unused for client-side validation
+const ACCOUNTS_URL = AUTH_ORIGIN + "/admin/accounts";
+const GITHUB_PROXY_URL = AUTH_ORIGIN + "/admin/github-proxy";
 const API = "https://api.github.com";
 const CV_PATH = "_data/cv.yml";
 
-const COLLECTIONS = {
-  posts:    { dir: "_posts",    label: "Post",    icon: "article" },
-  projects: { dir: "_projects", label: "Project", icon: "folder_special" },
-};
-
-/* ================================================================
-   State + helpers
-================================================================ */
-let token = sessionStorage.getItem("gh_token") || null;
+let token = sessionStorage.getItem("gh_session_token") || null;
 let user = JSON.parse(sessionStorage.getItem("gh_user") || "null");
-let view = "posts";
-let items = [];
+let view = "accounts";
+let accs = [];
+let postCount = 0;
+let projCount = 0;
 let editing = null;
-let cvState = null;   // { sha, data: parsedYaml, raw: text }
 
 const $ = (s) => document.querySelector(s);
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+
+const esc = (s) => String(s ?? "").replace(/[&<>"'`]/g, c => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#x60;"
 }[c]));
 
-async function gh(path, opts = {}) {
-  const res = await fetch(`${API}${path}`, {
-    ...opts,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-      "Content-Type": "application/json",
-      ...(opts.headers || {}),
-    },
-  });
-  if (res.status === 401) { logout(); throw new Error("Session expired — sign in again."); }
-  const data = res.status === 204 ? null : await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.message || `GitHub API ${res.status}`);
-  return data;
-}
-
-/* ---- minimal frontmatter (YAML-ish) parse/serialize ---- */
-function parseFrontmatter(raw) {
-  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
-  if (!m) return { front: {}, body: raw };
-  const front = {};
-  for (const line of m[1].split(/\r?\n/)) {
-    const t = line.trim();
-    if (!t || t.startsWith("#")) continue;
-    const i = t.indexOf(":");
-    if (i === -1) continue;
-    const key = t.slice(0, i).trim();
-    const val = t.slice(i + 1).trim().replace(/^["']|["']$/g, "");
-    front[key] = val;
-  }
-  return { front, body: m[2] };
-}
-
-function serializeFrontmatter(fields, body) {
-  const lines = ["---"];
-  for (const [k, v] of Object.entries(fields)) {
-    if (v === "" || v == null) continue;
-    lines.push(`${k}: ${/[:#]/.test(String(v)) || v !== String(v).trim() ? `"${v}"` : v}`);
-  }
-  lines.push("---", "");
-  return lines.join("\n") + (body || "");
-}
-
-/* ================================================================
-   Auth
-================================================================ */
+/* Auth */
 function login() {
   const w = 560, h = 700;
   const left = screen.width / 2 - w / 2, top = screen.height / 2 - h / 2;
   const popup = window.open(`${AUTH_ORIGIN}/auth`, "gh-auth",
     `width=${w},height=${h},left=${left},top=${top}`);
-
-  function onMsg(e) {
+  const onMsg = (e) => {
     if (e.origin !== AUTH_ORIGIN) return;
-    // The callback popup sends a handshake first and waits for a reply
-    // before it posts the token back. Answer it, then it will deliver.
     if (e.data?.type === "github-auth-handshake") {
       try { e.source.postMessage({ type: "github-auth-ready" }, e.origin); } catch {}
       return;
     }
     if (e.data?.type === "github-auth-success") {
       cleanup();
-      token = e.data.token;
-      sessionStorage.setItem("gh_token", token);
-      loadUser().then(showApp);
+      if (e.source) {
+        e.source.postMessage({ type: "github-auth-finalize" }, e.origin);
+      }
     }
-  }
-  function onClose() { cleanup(); if (!token) setGate("Sign in with GitHub", "Cancelled. Try again when ready.", true); }
+  };
+  function onClose() { cleanup(); if (!user) setGate("Sign in with GitHub", "Cancelled. Try again when ready.", true); }
   function cleanup() {
     window.removeEventListener("message", onMsg);
     clearInterval(poll);
@@ -349,28 +298,33 @@ function login() {
   window.addEventListener("message", onMsg);
 }
 
-async function loadUser() {
+async function validateSession() {
+  // Client-side identity verification: call GitHub API directly with the token
+  // received via postMessage. No Cloudflare D1/Worker needed for this check.
+  if (!token) return null;
   try {
-    const res = await fetch(`${API}/user`, { headers: { Authorization: `Bearer ${token}` } });
-    if (res.ok) {
-      user = await res.json();
-      sessionStorage.setItem("gh_user", JSON.stringify(user));
-    } else {
-      // Token is valid enough to have arrived; surface a minimal identity so
-      // the app still opens instead of stranding the user on the gate.
-      user = { login: "github-user" };
-      console.warn("GitHub /user returned", res.status);
+    const res = await fetch("https://api.github.com/user", {
+      headers: { `Bearer ${token}``, Accept: "application/vnd.github+json" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const ownerLogin = process.env.ADMIN_OWNER || "Thairux";
+    if (String(data.login || "").toLowerCase() !== ownerLogin.toLowerCase()) {
+      // Not your account — deny access. We will not store the token.
+      return null;
     }
-  } catch (err) {
-    user = { login: "github-user" };
-    console.warn("GitHub /user fetch failed:", err);
+    user = { login: data.login, name: data.name || data.login, avatar: data.avatar_url };
+    sessionStorage.setItem("gh_user", JSON.stringify(user));
+    return user;
+  } catch {
+    return null;
   }
 }
 
 function logout() {
-  token = null; user = null;
-  sessionStorage.removeItem("gh_token");
+  sessionStorage.removeItem("gh_session_token");
   sessionStorage.removeItem("gh_user");
+  token = null; user = null;
   showGate();
 }
 
@@ -384,8 +338,9 @@ function setGate(title, msg, showLogin) {
 function showGate() {
   $("#gate").hidden = false;
   $("#app").hidden = true;
-  setGate("Portfolio Admin",
-    "Sign in with GitHub to edit posts, projects, and the CV. Commits are made as you, straight to <code>main</code>.", true);
+  setGate("Platform Admin",
+    "Sign in with GitHub to access the admin console. Only <strong>Peter Thairu Muigai (github: Thairux)</strong> can view this page.",
+    true);
 }
 
 function showApp() {
@@ -393,33 +348,267 @@ function showApp() {
   $("#app").hidden = false;
   $("#userLabel").textContent = user?.login || "—";
   $("#repoLabel").textContent = `${OWNER}/${REPO}`;
-  switchView("posts");
+  switchView("accounts");
 }
 
-/* ================================================================
-   Minimal YAML (subset) parse/serialize for _data/cv.yml
-   Supports: nested maps, lists of maps, lists of scalars, block scalars (>-).
-================================================================ */
-function parseYaml(text) {
-  // Correct indentation-based parser for the cv.yml subset: nested maps,
-  // lists of maps, lists of scalars (quoted or not), and block scalars (>-).
-  // The previous stack-machine version collapsed "- key: value" list items
-  // into a single object, so `experience` parsed as a map, not an array.
-  const lines = text.split(/\r?\n/).map((l) => {
-    const indent = l.match(/^\s*/)[0].length;
-    return { indent, text: l.trim(), raw: l };
-  }).filter((l) => l.text && !l.text.startsWith("#"));
+/* Views */
+function switchView(v) {
+  view = v; editing = null;
+  document.querySelectorAll(".nav button").forEach(b =>
+    b.classList.toggle("active", b.dataset.view === v));
+  $("#newBtn").hidden = (v === "accounts");
+  $("#viewTitle").textContent = v === "posts" ? "Posts" : v === "projects" ? "Projects" : v === "cv" ? "CV" : "Accounts";
+  if (v === "cv") renderCvEditor();
+  else if (v === "accounts") renderAccounts();
+  else renderList();
+}
 
+async function loadCounts() {
+  try {
+    const [posts, projects] = await Promise.all([
+      fetch(`${API}/repos/${OWNER}/${REPO}/contents/_posts?ref=${BRANCH}`),
+      fetch(`${API}/repos/${OWNER}/${REPO}/contents/_projects?ref=${BRANCH}`),
+    ]);
+    if (posts.ok) postCount = (await posts.json()).length;
+    if (projects.ok) projCount = (await projects.json()).length;
+    $("#postCount").textContent = postCount;
+    $("#projCount").textContent = projCount;
+  } catch { /* non-critical */ }
+}
+
+async function renderList() {
+  const dir = view === "posts" ? "_posts" : "_projects";
+  const data = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${dir}?ref=${BRANCH}`);
+  const files = data.ok ? await data.json() : [];
+  const items = files.filter(f => f.name.endsWith(".md"))
+    .map(f => ({ name: f.name, path: f.path, sha: f.sha }));
+
+  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading…</div>`;
+  if (!items.length) {
+    $("#content").innerHTML = `<div class="empty">No ${view} yet — hit <strong>New</strong> to create one.</div>`;
+    return;
+  }
+
+  const rows = await Promise.all(items.map(async (it) => {
+    let title = it.name;
+    try {
+      const raw = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${it.path}?ref=${BRANCH}`)
+        .then(d => d.json()).then(d => atob(d.content));
+      const m = raw.match(/^---[\s\S]*?---[\s\S]*$/);
+      if (m) {
+        const fm = m[0].replace(/^---$/g, "").trim();
+        const kv = fm.split("\n").map(l => l.split(": ").map(s => s.trim())).filter(kv => kv.length === 2);
+        title = kv.find(k => k[0] === "title")?.[1] || it.name.replace(/\.md$/, "");
+      }
+    } catch { /* keep filename */ }
+    return `<div class="item" data-path="${esc(it.path)}">
+      <div class="icon"><span class="material-symbols-outlined">${view === "posts" ? "article" : "folder_special"}</span></div>
+      <div class="body">
+        <div class="title">${esc(title)}</div>
+        <div class="meta">${esc(it.path)}</div>
+      </div>
+      <span class="material-symbols-outlined chev">chevron_right</span>
+    </div>`;
+  }));
+  $("#content").innerHTML = `<div class="list">${rows.join("")}</div>`;
+  $("#content").querySelectorAll(".item").forEach(el =>
+    el.addEventListener("click", () => openEditor(el.dataset.path)));
+}
+
+async function openEditor(path) {
+  const file = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`)
+    .then(d => d.json());
+  const raw = atob(file.content);
+  const m = raw.match(/^---[\s\S]*?---[\s\S]*$/);
+  const front = m ? parseFrontmatterRaw(m[0]) : {};
+  editing = { path, sha: file.sha, front, body: raw.replace(/^---[\s\S]*?---[\s\S]*$/, "") };
+  renderEditor();
+}
+
+function parseFrontmatterRaw(raw) {
+  const front = {};
+  const lines = raw.split("\n").slice(1, -1);
+  for (const line of lines) {
+    const i = line.indexOf(":");
+    if (i === -1) continue;
+    const key = line.slice(0, i).trim();
+    let val = line.slice(i + 1).trim().replace(/^["']|["']$/g, "");
+    front[key] = val;
+  }
+  return front;
+}
+
+function renderEditor() {
+  const e = editing;
+  if (!e) return renderList();
+  const f = e.front;
+  $("#content").innerHTML = `
+    <div class="editor">
+      <div class="status-bar" id="saveStatus" style="display:none"></div>
+      <div class="field"><label>Title</label>
+        <input id="fTitle" value="${esc(f.title || "")}" placeholder="Post title"></div>
+      <div class="field"><label>Description</label>
+        <input id="fDesc" value="${esc(f.description || "")}" placeholder="One-line summary"></div>
+      <div class="field"><label>Body (markdown)</label>
+        <textarea class="body-editor" id="fBody">${esc(e.body)}</textarea>
+        <div class="hint">Markdown. Frontmatter fields (other than title/description) are preserved automatically.</div></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn" id="cancelBtn">Cancel</button>
+        <button class="btn primary" id="saveBtn"><span class="material-symbols-outlined">save</span> Commit to main</button>
+      </div>
+    </div>`;
+  $("#cancelBtn").onclick = () => { editing = null; renderList(); };
+  $("#saveBtn").onclick = save;
+}
+
+async function save() {
+  const btn = $("#saveBtn");
+  btn.disabled = true;
+  $("#saveStatus").style.display = "flex";
+  $("#saveStatus").className = "status-bar";
+  $("#saveStatus").innerHTML = `<span class="material-symbols-outlined">sync</span> Committing…`;
+  try {
+    const updated = { ...editing.front, title: $("#fTitle").value, description: $("#fDesc").value || editing.front.description };
+    const content = serializeFrontmatter(updated, $("#fBody").value);
+    await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${editing.path}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: `admin: update ${editing.path}`,
+        content: btoa(unescape(encodeURIComponent(content))),
+        sha: editing.sha,
+        branch: BRANCH,
+      }),
+    });
+    $("#saveStatus").className = "status-bar ok";
+    $("#saveStatus").innerHTML = `<span class="material-symbols-outlined">check_circle</span> Committed to main — Pages is rebuilding.`;
+    setTimeout(() => { editing = null; renderList(); }, 1200);
+  } catch (err) {
+    $("#saveStatus").className = "status-bar err";
+    $("#saveStatus").innerHTML = `<span class="material-symbols-outlined">error</span> ${esc(err.message)}`;
+    btn.disabled = false;
+  }
+}
+
+function serializeFrontmatter(fields, body) {
+  const lines = ["---"];
+  for (const [k, v] of Object.entries(fields)) {
+    if (v === "" || v == null) continue;
+    lines.push(`${k}: ${/[:#]/.test(String(v)) || v !== String(v).trim() ? `"${v}"` : v}`);
+  }
+  lines.push("---", "");
+  return lines.join("\n") + (body || "");
+}
+
+async function createNew() {
+  const slug = prompt("Post file name (e.g. my-new-post):");
+  if (!slug) return;
+  const date = new Date().toISOString().slice(0, 10);
+  const name = `${date}-${slug.replace(/\s+/g, "-").toLowerCase()}.md`;
+  const path = `_posts/${name}`;
+  const body = `---\nlayout: post\ntitle: ${slug}\ndate: ${date}\nauthor: Thairux\npermalink: /${slug}/\n---\n\nWrite here.\n`;
+  try {
+    await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: `admin: create ${path}`,
+        content: btoa(unescape(encodeURIComponent(body))),
+        branch: BRANCH,
+      }),
+    });
+    await loadCounts();
+    renderList();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+/* Accounts (admin roster) */
+async function renderAccounts() {
+  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading…</div>`;
+  try {
+    const res = await fetch(ACCOUNTS_URL, { headers: { Accept: "application/json" } });
+    if (!res.ok) {
+      $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc((await res.json()).error || "load_failed")}</div>`;
+      return;
+    }
+    accs = await res.json();
+    $("#accCount").textContent = accs.length;
+    $("#content").innerHTML = accs.length
+      ? `<div class="admin-grid">${accs.map(renderAccountCard).join("")}</div>`
+      : `<div class="empty">No admin accounts yet. The platform owner can add accounts via Personal Access Token (classic) or by inviting a GitHub user.</div>`;
+  } catch (err) {
+    $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(err.message)}</div>`;
+  }
+}
+
+function renderAccountCard(a) {
+  const roles = Array.isArray(a.roles) ? a.roles : [String(a.roles || "site-admin")];
+  return `
+    <div class="acc-card">
+      <div class="acc-card-head">
+        <div class="avatar">${esc(a.name || a.github_login?.[0] || "?")}</div>
+        <div>
+          <div class="title" style="font-size:14px">${esc(a.github_login || "unknown")}</div>
+          <div class="roles">${roles.map(r => esc(r)).join(", ")}</div>
+        </div>
+        <div class="spacer" style="flex:1"></div>
+        <div class="acc-card-actions">
+          <button class="btn" data-del="${esc(a.id)}" style="padding:4px 10px;font-size:11px"><span class="material-symbols-outlined">delete</span> Remove</button>
+        </div>
+      </div>
+      <div class="acc-card-body">
+        <div class="field"><label>Name</label><input value="${esc(a.name || "")}" readonly></div>
+        <div class="field"><label>Email</label><input value="${esc(a.email || "")}" readonly></div>
+      </div>
+    </div>`;
+}
+
+async function deleteAccount(id) {
+  if (!confirm("Remove this admin account from the platform? This will revoke their access.")) return;
+  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Removing…</div>`;
+  try {
+    const res = await fetch(`${ACCOUNTS_URL}/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { Accept: "application/json" },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "remove_failed");
+    accs = accs.filter(a => a.id !== id);
+    $("#accCount").textContent = accs.length;
+    $("#content").innerHTML = accs.length
+      ? `<div class="admin-grid">${accs.map(renderAccountCard).join("")}</div>`
+      : `<div class="empty">No admin accounts yet.</div>`;
+  } catch (err) {
+    $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(err.message)}</div>`;
+  }
+}
+
+/* CV editor */
+async function loadCv() {
+  const file = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${CV_PATH}?ref=${BRANCH}`);
+  const raw = atob((await file.json()).content);
+  return { sha: file.json().sha, raw, data: parseCvYaml(raw) };
+}
+
+function parseCvYaml(text) {
+  const lines = text.split(/\r?\n/).map(l => ({ indent: l.match(/^\s*/)[0].length, text: l.trim(), raw: l }));
   let pos = 0;
 
   function parseBlock(minIndent) {
-    // Decide map vs list from the first line at this indent.
     if (pos >= lines.length) return null;
     const first = lines[pos];
     if (first.indent < minIndent) return null;
-    if (first.text.startsWith("- ") || first.text === "-") {
-      return parseList(first.indent);
-    }
+    if (first.text.startsWith("- ") || first.text === "-") return parseList(first.indent);
     return parseMap(first.indent);
   }
 
@@ -428,30 +617,24 @@ function parseYaml(text) {
     while (pos < lines.length) {
       const line = lines[pos];
       if (line.indent < indent) break;
-      if (line.indent > indent) break; // shouldn't happen at list level
+      if (line.indent > indent) break;
       if (!(line.text.startsWith("- ") || line.text === "-")) break;
       const content = line.text === "-" ? "" : line.text.slice(2).trim();
       pos++;
       if (content === "") {
-        // map item whose keys follow on subsequent, more-indented lines
-        const item = parseMap(indent + 1);
-        arr.push(item || {});
+        arr.push(parseMap(indent + 2) || {});
       } else if (!isQuoted(content) && scalarHasKey(content)) {
-        // "- key: value" — first key inline, rest follow indented under it
         const obj = {};
         const ci = content.indexOf(":");
         const k = content.slice(0, ci).trim();
         const v = content.slice(ci + 1).trim();
-        // keys of this item sit at indent + 2 (the column after "- ")
         const itemIndent = indent + 2;
         if (v === "") {
           obj[k] = parseBlock(itemIndent + 1);
         } else {
           obj[k] = stripQuotes(v);
         }
-        // remaining keys of the same map item
-        while (pos < lines.length && lines[pos].indent >= itemIndent &&
-               !(lines[pos].text.startsWith("- ") || lines[pos].text === "-")) {
+        while (pos < lines.length && lines[pos].indent >= itemIndent && !(lines[pos].text.startsWith("- ") || lines[pos].text === "-")) {
           const extra = parseMapEntry(obj, itemIndent);
           if (!extra) break;
         }
@@ -475,9 +658,7 @@ function parseYaml(text) {
       container[key] = parseBlock(indent + 1);
     } else if (val === ">-") {
       const buf = [];
-      while (pos < lines.length && lines[pos].indent > indent) {
-        buf.push(lines[pos].text); pos++;
-      }
+      while (pos < lines.length && lines[pos].indent > indent) { buf.push(lines[pos].text); pos++; }
       container[key] = buf.join(" ").trim();
     } else {
       container[key] = stripQuotes(val);
@@ -497,248 +678,26 @@ function parseYaml(text) {
     return obj;
   }
 
-  // A "- key: value" scalar only when the colon is a real key separator
-  // (followed by a space or end), not a colon inside a quoted string.
   function scalarHasKey(s) {
     if (isQuoted(s)) return false;
-    const m = s.match(/^[^:]+:(\s|$)/);
-    return !!m;
+    return /^[^:]+:/ .test(s);
   }
 
   return parseMap(0) || {};
 }
 
-function stripQuotes(v) {
-  return v.replace(/^["']|["']$/g, "");
-}
-
-function isQuoted(v) {
-  return v.length >= 2 && ((v[0] === '"' && v[v.length - 1] === '"') ||
-                           (v[0] === "'" && v[v.length - 1] === "'"));
-}
-
-function toYaml(value, indent = 0) {
-  const pad = "  ".repeat(indent);
-  if (Array.isArray(value)) {
-    let out = "";
-    for (const item of value) {
-      if (typeof item === "object" && item !== null) {
-        const keys = Object.keys(item);
-        if (!keys.length) { out += `${pad}- {}\n`; continue; }
-        let first = true;
-        for (const k of keys) {
-          const v = item[k];
-          const prefix = first ? `${pad}- ` : `${pad}  `;
-          first = false;
-          if (typeof v === "object" && v !== null) {
-            out += `${prefix}${k}:\n${toYaml(v, indent + 2)}`;
-          } else if (Array.isArray(v)) {
-            out += `${prefix}${k}:\n${toYaml(v, indent + 2)}`;
-          } else {
-            out += `${prefix}${k}: ${yamlScalar(v)}\n`;
-          }
-        }
-      } else {
-        out += `${pad}- ${yamlScalar(item)}\n`;
-      }
-    }
-    return out;
-  }
-  if (typeof value === "object" && value !== null) {
-    let out = "";
-    for (const k of Object.keys(value)) {
-      const v = value[k];
-      if (typeof v === "object" && v !== null) {
-        out += `${pad}${k}:\n${toYaml(v, indent + 1)}`;
-      } else if (Array.isArray(v)) {
-        out += `${pad}${k}:\n${toYaml(v, indent + 1)}`;
-      } else {
-        out += `${pad}${k}: ${yamlScalar(v)}\n`;
-      }
-    }
-    return out;
-  }
-  return `${pad}${yamlScalar(value)}\n`;
-}
-
-function yamlScalar(v) {
-  if (v == null) return '""';
-  const s = String(v);
-  if (s === "") return '""';
-  if (/[:#\->{}\[\],&*!|>'"%@`]/.test(s) || s !== s.trim() || /^\d+$/.test(s)) {
-    return JSON.stringify(s);
-  }
-  return s;
-}
-
-/* ================================================================
-   Views
-================================================================ */
-function switchView(v) {
-  view = v; editing = null;
-  document.querySelectorAll(".nav button").forEach(b =>
-    b.classList.toggle("active", b.dataset.view === v));
-  $("#newBtn").hidden = (v === "cv");
-  $("#viewTitle").textContent = v === "posts" ? "Posts" : v === "projects" ? "Projects" : "CV";
-  if (v === "cv") renderCvEditor();
-  else renderList();
-}
-
-async function loadItems() {
-  const dir = COLLECTIONS[view].dir;
-  const data = await gh(`/repos/${OWNER}/${REPO}/contents/${dir}?ref=${BRANCH}`);
-  items = (data || [])
-    .filter(f => f.name.endsWith(".md"))
-    .map(f => ({ name: f.name, path: f.path, sha: f.sha }));
-  if (view === "posts") $("#postCount").textContent = items.length;
-  else $("#projCount").textContent = items.length;
-}
-
-async function renderList() {
-  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading…</div>`;
-  try {
-    await loadItems();
-  } catch (e) {
-    $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(e.message)}</div>`;
-    return;
-  }
-  if (!items.length) {
-    $("#content").innerHTML = `<div class="empty">No ${view} yet — hit <strong>New</strong> to create one.</div>`;
-    return;
-  }
-  const rows = await Promise.all(items.map(async (it) => {
-    let title = it.name;
-    try {
-      const raw = await gh(`/repos/${OWNER}/${REPO}/contents/${it.path}?ref=${BRANCH}`)
-        .then(d => atob(d.content));
-      title = parseFrontmatter(raw).front.title || it.name.replace(/\.md$/, "");
-    } catch { /* keep filename */ }
-    return `<div class="item" data-path="${esc(it.path)}">
-      <div class="icon"><span class="material-symbols-outlined">${COLLECTIONS[view].icon}</span></div>
-      <div class="body">
-        <div class="title">${esc(title)}</div>
-        <div class="meta">${esc(it.path)}</div>
-      </div>
-      <span class="material-symbols-outlined chev">chevron_right</span>
-    </div>`;
-  }));
-  $("#content").innerHTML = `<div class="list">${rows.join("")}</div>`;
-  $("#content").querySelectorAll(".item").forEach(el =>
-    el.addEventListener("click", () => openEditor(el.dataset.path)));
-}
-
-async function openEditor(path) {
-  const file = await gh(`/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`);
-  const raw = atob(file.content);
-  const { front, body } = parseFrontmatter(raw);
-  editing = { path, sha: file.sha, front, body };
-  renderEditor();
-}
-
-function renderEditor() {
-  const e = editing;
-  if (!e) return renderList();
-  const f = e.front;
-  $("#content").innerHTML = `
-    <div class="editor">
-      <div class="status-bar" id="saveStatus" style="display:none"></div>
-      <div class="field"><label>Title</label>
-        <input id="fTitle" value="${esc(f.title || "")}" placeholder="Post title"></div>
-      <div class="field"><label>Description</label>
-        <input id="fDesc" value="${esc(f.description || "")}" placeholder="One-line summary"></div>
-      <div class="field"><label>Body (markdown)</label>
-        <textarea class="body-editor" id="fBody">${esc(e.body)}</textarea>
-        <div class="hint">Markdown. Frontmatter (${Object.keys(f).filter(k=>!["title","description"].includes(k)).join(", ") || "layout, date"}) is preserved automatically.</div></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn" id="cancelBtn">Cancel</button>
-        <button class="btn primary" id="saveBtn"><span class="material-symbols-outlined">save</span> Commit to main</button>
-      </div>
-    </div>`;
-  $("#cancelBtn").onclick = () => { editing = null; renderList(); };
-  $("#saveBtn").onclick = save;
-}
-
-function status(msg, cls) {
-  const el = $("#saveStatus");
-  if (!el) return;
-  el.style.display = "flex";
-  el.className = `status-bar ${cls}`;
-  el.innerHTML = `<span class="material-symbols-outlined">${cls === "ok" ? "check_circle" : cls === "err" ? "error" : "sync"}</span> ${esc(msg)}`;
-}
-
-async function save() {
-  const btn = $("#saveBtn");
-  btn.disabled = true;
-  status("Committing…", "");
-  try {
-    const updated = {
-      ...editing.front,
-      title: $("#fTitle").value,
-      description: $("#fDesc").value || editing.front.description,
-    };
-    const content = serializeFrontmatter(updated, $("#fBody").value);
-    await gh(`/repos/${OWNER}/${REPO}/contents/${editing.path}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        message: `admin: update ${editing.path}`,
-        content: btoa(unescape(encodeURIComponent(content))),
-        sha: editing.sha,
-        branch: BRANCH,
-      }),
-    });
-    status("Committed to main — Pages is rebuilding.", "ok");
-    setTimeout(() => { editing = null; renderList(); }, 1200);
-  } catch (err) {
-    status(err.message, "err");
-    btn.disabled = false;
-  }
-}
-
-async function createNew() {
-  const dir = COLLECTIONS[view].dir;
-  const slug = prompt(`${COLLECTIONS[view].label} file name (e.g. my-new-post):`);
-  if (!slug) return;
-  const isPost = view === "posts";
-  const date = new Date().toISOString().slice(0, 10);
-  const name = isPost ? `${date}-${slug.replace(/\s+/g, "-").toLowerCase()}.md` : `${slug.replace(/\s+/g, "-").toLowerCase()}.md`;
-  const path = `${dir}/${name}`;
-  const body = serializeFrontmatter(
-    isPost
-      ? { layout: "post", title: slug, date, author: "Thairux", permalink: `/${slug}/` }
-      : { layout: "project", title: slug, description: "", order: "9" },
-    "\nWrite here.\n"
-  );
-  try {
-    await gh(`/repos/${OWNER}/${REPO}/contents/${path}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        message: `admin: create ${path}`,
-        content: btoa(unescape(encodeURIComponent(body))),
-        branch: BRANCH,
-      }),
-    });
-    await loadItems();
-    renderList();
-  } catch (err) {
-    alert(err.message);
-  }
-}
-
-/* ================================================================
-   CV editor
-================================================================ */
-async function loadCv() {
-  const file = await gh(`/repos/${OWNER}/${REPO}/contents/${CV_PATH}?ref=${BRANCH}`);
-  const raw = atob(file.content);
-  cvState = { sha: file.sha, raw, data: parseYaml(raw) };
-}
+function stripQuotes(v) { return v.replace(/^["']|["']$/g, ""); }
+function isQuoted(v) { return v.length >= 2 && ((v[0] === '"' && v[v.length - 1] === '"') || (v[0] === "'" && v[v.length - 1] === "'")); }
 
 function renderCvEditor() {
   $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading CV…</div>`;
-  loadCv().then(() => paintCvEditor())
-    .catch(e => {
-      $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(e.message)}</div>`;
-    });
+  let cvState = null;
+  loadCv().then((s) => {
+    cvState = s;
+    paintCvEditor();
+  }).catch((e) => {
+    $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(e.message)}</div>`;
+  });
 }
 
 function paintCvEditor() {
@@ -826,7 +785,6 @@ function paintCvEditor() {
       </p>
     </div>`;
 
-  // paint repeatable sections
   const exp = d.experience || [];
   $("#cvExpList").innerHTML = exp.map((r, i) => `
     <div class="cv-entry" data-exp="${i}">
@@ -937,7 +895,7 @@ function wireCvEditor() {
 
   $("#content").querySelectorAll("[data-add-line]").forEach(btn => {
     btn.onclick = () => {
-      const kind = btn.dataset.addLine; // "bullet"
+      const kind = btn.dataset.addLine;
       const entry = btn.closest(".cv-entry");
       const i = +entry.dataset.exp;
       (cvState.data.experience[i].bullets ||= []).push("");
@@ -1002,10 +960,66 @@ function collectCv() {
   d.referees   = $("#cvReferees").value;
 }
 
+function toYaml(value, indent = 0) {
+  const pad = "  ".repeat(indent);
+  if (Array.isArray(value)) {
+    let out = "";
+    for (const item of value) {
+      if (typeof item === "object" && item !== null) {
+        const keys = Object.keys(item);
+        if (!keys.length) { out += `${pad}- {}\n`; continue; }
+        let first = true;
+        for (const k of keys) {
+          const v = item[k];
+          const prefix = first ? `${pad}- ` : `${pad}  `;
+          first = false;
+          if (typeof v === "object" && v !== null) {
+            out += `${prefix}${k}:\n${toYaml(v, indent + 2)}`;
+          } else if (Array.isArray(v)) {
+            out += `${prefix}${k}:\n${toYaml(v, indent + 2)}`;
+          } else {
+            out += `${prefix}${k}: ${yamlScalar(v)}\n`;
+          }
+        }
+      } else {
+        out += `${pad}- ${yamlScalar(item)}\n`;
+      }
+    }
+    return out;
+  }
+  if (typeof value === "object" && value !== null) {
+    let out = "";
+    for (const k of Object.keys(value)) {
+      const v = value[k];
+      if (typeof v === "object" && v !== null) {
+        out += `${pad}${k}:\n${toYaml(v, indent + 1)}`;
+      } else if (Array.isArray(v)) {
+        out += `${pad}${k}:\n${toYaml(v, indent + 1)}`;
+      } else {
+        out += `${pad}${k}: ${yamlScalar(v)}\n`;
+      }
+    }
+    return out;
+  }
+  return `${pad}${yamlScalar(value)}\n`;
+}
+
+function yamlScalar(v) {
+  if (v == null) return '""';
+  const s = String(v);
+  if (s === "") return '""';
+  if (/[:#\\->{}\[\\],&*!|>'\"%@`]/.test(s) || s !== s.trim() || /^\d+$/.test(s)) {
+    return JSON.stringify(s);
+  }
+  return s;
+}
+
 async function saveCv() {
   const btn = $("#cvSaveBtn");
   btn.disabled = true;
-  status("Committing CV…", "");
+  $("#cvStatus").style.display = "flex";
+  $("#cvStatus").className = "status-bar";
+  $("#cvStatus").innerHTML = `<span class="material-symbols-outlined">sync</span> Committing…`;
   try {
     collectCv();
     const header =
@@ -1018,8 +1032,13 @@ async function saveCv() {
 
 `;
     const content = header + toYaml(cvState.data, 0);
-    await gh(`/repos/${OWNER}/${REPO}/contents/${CV_PATH}`, {
+    await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${CV_PATH}`, {
       method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         message: "admin: update CV data (_data/cv.yml)",
         content: btoa(unescape(encodeURIComponent(content))),
@@ -1027,23 +1046,73 @@ async function saveCv() {
         branch: BRANCH,
       }),
     });
-    status("CV committed to main — Pages is rebuilding.", "ok");
+    $("#cvStatus").className = "status-bar ok";
+    $("#cvStatus").innerHTML = `<span class="material-symbols-outlined">check_circle</span> CV committed to main — Pages is rebuilding.`;
   } catch (err) {
-    status(err.message, "err");
+    $("#cvStatus").className = "status-bar err";
+    $("#cvStatus").innerHTML = `<span class="material-symbols-outlined">error</span> ${esc(err.message)}`;
     btn.disabled = false;
   }
 }
 
-/* ================================================================
-   Wire up
-================================================================ */
+/* Wire up */
 document.querySelectorAll(".nav button").forEach(b =>
   b.addEventListener("click", () => switchView(b.dataset.view)));
 $("#loginBtn").addEventListener("click", login);
 $("#logoutBtn").addEventListener("click", logout);
 $("#newBtn").addEventListener("click", createNew);
 
+// Clear any stale session token on load
+token && sessionStorage.getItem("gh_session_token") ? sessionStorage.removeItem("gh_session_token") : null;
 token && user ? showApp() : showGate();
+
+/* Add account modal */
+$("#addAccountModal").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) $("#addAccountModal").hidden = true;
+});
+$("#newBtn").addEventListener("click", () => { $("#addAccountModal").hidden = false; });
+$("#cancelAdd").addEventListener("click", () => { $("#addAccountModal").hidden = true; });
+$("#addBtn").addEventListener("click", async () => {
+  const login = $("#addLogin").value.trim();
+  if (!login) return;
+  const role = $("#addRole").value;
+  $("#addBtn").disabled = true;
+  $("#addBtn").innerHTML = `<span class="spinner"></span> Adding…`;
+  try {
+    const res = await fetch(ACCOUNTS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ github_login: login, name: "", roles: role }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "add_failed");
+    $("#addAccountModal").hidden = true;
+    $("#addLogin").value = "";
+    await loadCounts();
+    switchView("accounts");
+    renderAccounts();
+  } catch (err) {
+    alert(err.message);
+    $("#addBtn").disabled = false;
+    $("#addBtn").innerHTML = `<span class="material-symbols-outlined">person_add</span> Add`;
+  }
+});
+
+/* Quick delete wire-up (delegated) */
+$("#content").addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-del]");
+  if (!btn) return;
+  const id = btn.dataset.del;
+  await deleteAccount(id);
+});
+
+/* Session validation on load */
+async function init() {
+  const valid = await validateSession();
+  if (valid) showApp();
+  else showGate();
+}
+init();
 </script>
 </body>
 </html>

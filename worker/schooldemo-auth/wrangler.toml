@@ -1,0 +1,12 @@
+name = "schooldemo-admin-auth"
+main = "index.js"
+compatibility_date = "2026-10-11"
+
+# Secrets required in the Cloudflare dashboard:
+#   GITHUB_CLIENT_ID      - OAuth app client id
+#   GITHUB_CLIENT_SECRET  - OAuth app client secret
+#   ADMIN_OWNER           - GitHub login that owns the platform (default Thairux)
+#   ADMIN_ROLES           - CSV of allowed roles (default: platform-admin)
+#   D1_BINDING            - Cloudflare D1 binding for the admins roster
+#   GITHUB_OWNER_TOKEN    - Server-side token used to verify identity and
+#                           proxy GitHub API calls (bindings or env)
