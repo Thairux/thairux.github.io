@@ -574,7 +574,13 @@ async function loadCv() {
 }
 
 function parseCvYaml(text) {
-  const lines = text.split(/\r?\n/).map(l => ({ indent: l.match(/^\s*/)[0].length, text: l.trim(), raw: l }));
+  // Drop blank lines and comment-only lines before parsing. The previous
+  // version kept them, so a blank line between two list items ended the list,
+  // and the top-level map aborted at the next item's indentation — silently
+  // dropping every section after the first experience entry.
+  const lines = text.split(/\r?\n/)
+    .map(l => ({ indent: l.match(/^\s*/)[0].length, text: l.trim(), raw: l }))
+    .filter(l => l.text !== "" && !l.text.startsWith("#"));
   let pos = 0;
 
   function parseBlock(minIndent) {
