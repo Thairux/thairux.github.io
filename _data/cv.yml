@@ -7,77 +7,56 @@
 
 contact:
   name: Peter Thairu Muigai
-  tagline: AI-primary developer building intelligent tooling and automation
-  location: Lanet, Nakuru, Kenya
+  tagline: "AI-primary developer building intelligent tooling and automation"
+  location: "Lanet, Nakuru, Kenya"
   phone: 0715 538 259
-  email: ptmthairu@gmail.com
-  github: https://github.com/Thairux
-  website: https://thairux.github.io
+  email: "ptmthairu@gmail.com"
+  github: "https://github.com/Thairux"
+  website: "https://thairux.github.io"
   availability: Available for immediate start
-
-summary: >-
-  Computer Science graduate with hands-on experience building AI agent tooling,
-  automation systems, and cross-platform developer infrastructure. Skilled in
-  TypeScript, Python, Electron, and SQLite with a focus on automation-first
-  engineering, testing discipline, and cross-tool integration. Currently an
-  intern at Pixel Academy, teaching robotics and AI fundamentals to children
-  while continuing to ship production-grade developer tools. Fluent in English
-  and Kiswahili. Available for immediate start.
-
-# --------------------------------------------------------------------------
-# Experience — chronological, most recent first. Each entry: role, org, period,
-# location (optional), bullets (list of achievement/responsibility lines),
-# skills (optional, surfaced as "Skills gained").
-# --------------------------------------------------------------------------
+summary: "Computer Science graduate with hands-on experience building AI agent tooling, automation systems, and cross-platform developer infrastructure. Skilled in TypeScript, Python, Electron, and SQLite with a focus on automation-first engineering, testing discipline, and cross-tool integration. Currently an intern at Pixel Academy, teaching robotics and AI fundamentals to children while continuing to ship production-grade developer tools. Fluent in English and Kiswahili. Available for immediate start."
 experience:
-  - role: Intern, Office & Instruction
+  - role: "Intern, Office & Instruction"
     org: Pixel Academy
     period: Current
-    location: Nakuru, Kenya
-    bullets:
-      - Serve as assistant instructor supporting lead instructors in robotics and AI education programs for children and teens.
-      - Translate complex technical concepts (programming logic, robotics, AI fundamentals) into age-appropriate lessons and hands-on exercises.
-      - "Coordinate day-to-day academy operations: scheduling, learner records, resource preparation, and equipment setup."
-      - Maintain and troubleshoot the academy's teaching hardware — laptops, robotics kits, and classroom technology.
+    location: "Nakuru, Kenya"
     skills:
       - Technical instruction
       - Curriculum support
       - Mentoring young learners
       - Operational coordination
-
+    bullets:
+      - Serve as assistant instructor supporting lead instructors in robotics and AI education programs for children and teens.
+      - "Translate complex technical concepts (programming logic, robotics, AI fundamentals) into age-appropriate lessons and hands-on exercises."
+      - "Coordinate day-to-day academy operations: scheduling, learner records, resource preparation, and equipment setup."
+      - "Maintain and troubleshoot the academy's teaching hardware ,laptops, robotics kits, and classroom technology."
   - role: ICT Attachment
-    org: Nakuru Teaching & Referral Hospital
+    org: "Nakuru Teaching & Referral Hospital"
     period: 3 months
     location: ICT Department
-    bullets:
-      - Provided first-line technical support to clinical and administrative staff across hardware, software, and network issues.
-      - Diagnosed and resolved day-to-day ICT problems to minimize downtime of systems supporting hospital operations.
-      - Supported routine system maintenance, user account management, and department documentation.
-      - Collaborated with the ICT team on infrastructure reliability in a high-demand healthcare environment.
     skills:
       - Technical support
       - Troubleshooting
       - System maintenance
       - Healthcare IT environments
-
-# --------------------------------------------------------------------------
-# Education
-# --------------------------------------------------------------------------
+    bullets:
+      - "Provided first-line technical support to clinical and administrative staff across hardware, software, and network issues."
+      - "Diagnosed and resolved day-to-day ICT problems to minimize downtime of systems supporting hospital operations."
+      - "Supported routine system maintenance, user account management, and department documentation."
+      - "Collaborated with the ICT team on infrastructure reliability in a high-demand healthcare environment."
 education:
   - qualification: Bachelor of Science in Computer Science
     institution: Kabarak University
     status: Awaiting graduation and final results
-    detail: Core training in software engineering, systems, and problem-solving.
-  - qualification: Computer Networking — Short Course Certification
+    detail: "Core training in software engineering, systems, and problem-solving."
+  - qualification: Computer Networking â Short Course Certification
     institution: Completed alongside degree
     status: Completed
+    detail: ""
   - qualification: Kenya Certificate of Secondary Education (KCSE)
-    institution: Menengai High School, Nakuru
-    status: Grade B- · Completed
-
-# --------------------------------------------------------------------------
-# Skills — grouped. Each group has a name and a list of items.
-# --------------------------------------------------------------------------
+    institution: "Menengai High School, Nakuru"
+    status: "Grade B- Â· Completed"
+    detail: ""
 skills:
   - name: Languages
     items:
@@ -86,18 +65,18 @@ skills:
       - Python
       - SQL
       - Bash
-  - name: Applications & Desktop
+  - name: "Applications & Desktop"
     items:
       - Electron
       - React
       - Node.js
       - REST API design and integration
-  - name: Data & Storage
+  - name: "Data & Storage"
     items:
       - SQLite
-      - Full-text search
+      - "Full-text search"
       - Schema design
-  - name: AI & Agents
+  - name: "AI & Agents"
     items:
       - MCP server development
       - Local LLM orchestration (Ollama)
@@ -105,47 +84,44 @@ skills:
       - Prompt engineering
   - name: Engineering practices
     items:
-      - Test-driven development
-      - Automation-first workflows
-      - Cross-tool integration
-      - Security-minded engineering
+      - "Test-driven development"
+      - "Automation-first workflows"
+      - "Cross-tool integration"
+      - "Security-minded engineering"
   - name: Tools
     items:
-      - Git & GitHub
+      - "Git & GitHub"
       - Jekyll
       - Cloudflare
       - ffmpeg
   - name: Professional skills
     items:
-      - Technical instruction & mentoring
-      - Communication (English & Kiswahili, fluent)
-      - Teamwork & client-facing skills
-      - Quick learner, strong interest in technology
-
-# --------------------------------------------------------------------------
-# Projects — mirrors the portfolio's obfuscated names. status is the honest
-# label shown on the CV.
-# --------------------------------------------------------------------------
+      - "Technical instruction & mentoring"
+      - "Communication (English & Kiswahili"
+      - fluent)
+      - "Teamwork & client-facing skills"
+      - Quick learner
+      - strong interest in technology
 projects:
-  - name: Cross-Agent Memory Protocol
+  - name: "Cross-Agent Memory Protocol"
     status: In active development
-    description: An open protocol enabling multiple AI coding assistants to share one persistent memory. Built the core engine, protocol server, and integrations across three agent platforms.
+    description: "An open protocol enabling multiple AI coding assistants to share one persistent memory. Built the core engine, protocol server, and integrations across three agent platforms."
     stack:
       - TypeScript
       - SQLite
       - MCP
-      - Full-text search
+      - "Full-text search"
   - name: Local AI Life Agent
     status: In active development
-    description: A privacy-first desktop agent running entirely on local models, with media generation and personal workflow management. Full Electron application.
+    description: "A privacy-first desktop agent running entirely on local models, with media generation and personal workflow management. Full Electron application."
     stack:
       - Electron
       - React
       - Ollama
       - Python
-  - name: HOSQ — Hospital Queue Management System
+  - name: HOSQ â Hospital Queue Management System
     status: Shipped
-    description: A real-time hospital queue management system with self-service check-in, role-based staff dashboards, emergency prioritization, and notifications.
+    description: "A real-time hospital queue management system with self-service check-in, role-based staff dashboards, emergency prioritization, and notifications."
     stack:
       - TypeScript
       - React
@@ -153,26 +129,21 @@ projects:
       - Tailwind CSS
   - name: Trading Signals Platform
     status: In active development
-    description: A full-stack market analysis platform combining a Python backend, signal processing pipeline, and an Electron dashboard.
+    description: "A full-stack market analysis platform combining a Python backend, signal processing pipeline, and an Electron dashboard."
     stack:
       - Python
       - Electron
       - REST APIs
   - name: Developer Workflow Tooling
     status: Shipped
-    description: A personal suite of skills, hooks, and rules automating how AI assistants work across five tools with one shared memory.
+    description: "A personal suite of skills, hooks, and rules automating how AI assistants work across five tools with one shared memory."
     stack:
       - Bash
       - TypeScript
       - Automation
-
-# --------------------------------------------------------------------------
-# Languages & referees
-# --------------------------------------------------------------------------
 languages:
   - name: English
     level: Fluent
   - name: Kiswahili
     level: Fluent
-
 referees: Available upon request.
