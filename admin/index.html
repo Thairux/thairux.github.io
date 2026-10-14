@@ -246,20 +246,17 @@
 /* ================================================================
    Config
 ================================================================ */
+// The one GitHub account allowed to sign in. Anyone else is rejected.
 const OWNER = "Thairux";
 const REPO  = "thairux.github.io";
 const BRANCH = "main";
 const AUTH_ORIGIN = "https://thairux-auth.ptmthairu.workers.dev";
-// SESSION_URL is unused for client-side validation
-const ACCOUNTS_URL = AUTH_ORIGIN + "/admin/accounts";
-const GITHUB_PROXY_URL = AUTH_ORIGIN + "/admin/github-proxy";
 const API = "https://api.github.com";
 const CV_PATH = "_data/cv.yml";
 
 let token = sessionStorage.getItem("gh_session_token") || null;
 let user = JSON.parse(sessionStorage.getItem("gh_user") || "null");
-let view = "accounts";
-let accs = [];
+let view = "posts";
 let postCount = 0;
 let projCount = 0;
 let editing = null;
@@ -284,9 +281,18 @@ function login() {
     }
     if (e.data?.type === "github-auth-success") {
       cleanup();
-      if (e.source) {
-        e.source.postMessage({ type: "github-auth-finalize" }, e.origin);
+      const received = e.data?.token;
+      if (typeof received === "string" && received) {
+        token = received;
+        sessionStorage.setItem("gh_session_token", received);
       }
+      // Verify who just signed in before letting them in.
+      authorize();
+      return;
+    }
+    if (e.data?.type === "github-auth-denied") {
+      cleanup();
+      denyAccess(e.data?.login || "");
     }
   };
   function onClose() { cleanup(); if (!user) setGate("Sign in with GitHub", "Cancelled. Try again when ready.", true); }
@@ -298,27 +304,43 @@ function login() {
   window.addEventListener("message", onMsg);
 }
 
-async function validateSession() {
-  // Client-side identity verification: call GitHub API directly with the token
-  // received via postMessage. No Cloudflare D1/Worker needed for this check.
-  if (!token) return null;
+// Confirm the signed-in GitHub account is the owner, then open the app.
+// Only OWNER is ever allowed through.
+async function authorize() {
+  if (!token) return false;
   try {
-    const res = await fetch("https://api.github.com/user", {
-      headers: { `Bearer ${token}``, Accept: "application/vnd.github+json" },
+    const res = await fetch(`${API}/user`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
     });
-    if (!res.ok) return null;
+    if (!res.ok) { logout(); return false; }
     const data = await res.json();
-    const ownerLogin = process.env.ADMIN_OWNER || "Thairux";
-    if (String(data.login || "").toLowerCase() !== ownerLogin.toLowerCase()) {
-      // Not your account — deny access. We will not store the token.
-      return null;
+    const login = String(data.login || "");
+    if (login.toLowerCase() !== OWNER.toLowerCase()) {
+      denyAccess(login);
+      return false;
     }
     user = { login: data.login, name: data.name || data.login, avatar: data.avatar_url };
     sessionStorage.setItem("gh_user", JSON.stringify(user));
-    return user;
+    showApp();
+    return true;
   } catch {
-    return null;
+    logout();
+    return false;
   }
+}
+
+// Not the owner: throw the token away and explain, without opening the app.
+function denyAccess(login) {
+  sessionStorage.removeItem("gh_session_token");
+  sessionStorage.removeItem("gh_user");
+  token = null; user = null;
+  $("#gate").hidden = false;
+  $("#app").hidden = true;
+  setGate("Access denied",
+    `This editor is restricted to the owner account <strong>@${esc(OWNER)}</strong>.` +
+    (login ? ` You are signed in as <strong>@${esc(login)}</strong>.` : "") +
+    ` Sign out of GitHub and retry with @${esc(OWNER)}.`,
+    true);
 }
 
 function logout() {
@@ -348,7 +370,7 @@ function showApp() {
   $("#app").hidden = false;
   $("#userLabel").textContent = user?.login || "—";
   $("#repoLabel").textContent = `${OWNER}/${REPO}`;
-  switchView("accounts");
+  switchView("posts");
 }
 
 /* Views */
@@ -356,10 +378,9 @@ function switchView(v) {
   view = v; editing = null;
   document.querySelectorAll(".nav button").forEach(b =>
     b.classList.toggle("active", b.dataset.view === v));
-  $("#newBtn").hidden = (v === "accounts");
-  $("#viewTitle").textContent = v === "posts" ? "Posts" : v === "projects" ? "Projects" : v === "cv" ? "CV" : "Accounts";
+  $("#newBtn").hidden = false;
+  $("#viewTitle").textContent = v === "posts" ? "Posts" : v === "projects" ? "Projects" : "CV";
   if (v === "cv") renderCvEditor();
-  else if (v === "accounts") renderAccounts();
   else renderList();
 }
 
@@ -529,67 +550,6 @@ async function createNew() {
     renderList();
   } catch (err) {
     alert(err.message);
-  }
-}
-
-/* Accounts (admin roster) */
-async function renderAccounts() {
-  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading…</div>`;
-  try {
-    const res = await fetch(ACCOUNTS_URL, { headers: { Accept: "application/json" } });
-    if (!res.ok) {
-      $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc((await res.json()).error || "load_failed")}</div>`;
-      return;
-    }
-    accs = await res.json();
-    $("#accCount").textContent = accs.length;
-    $("#content").innerHTML = accs.length
-      ? `<div class="admin-grid">${accs.map(renderAccountCard).join("")}</div>`
-      : `<div class="empty">No admin accounts yet. The platform owner can add accounts via Personal Access Token (classic) or by inviting a GitHub user.</div>`;
-  } catch (err) {
-    $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(err.message)}</div>`;
-  }
-}
-
-function renderAccountCard(a) {
-  const roles = Array.isArray(a.roles) ? a.roles : [String(a.roles || "site-admin")];
-  return `
-    <div class="acc-card">
-      <div class="acc-card-head">
-        <div class="avatar">${esc(a.name || a.github_login?.[0] || "?")}</div>
-        <div>
-          <div class="title" style="font-size:14px">${esc(a.github_login || "unknown")}</div>
-          <div class="roles">${roles.map(r => esc(r)).join(", ")}</div>
-        </div>
-        <div class="spacer" style="flex:1"></div>
-        <div class="acc-card-actions">
-          <button class="btn" data-del="${esc(a.id)}" style="padding:4px 10px;font-size:11px"><span class="material-symbols-outlined">delete</span> Remove</button>
-        </div>
-      </div>
-      <div class="acc-card-body">
-        <div class="field"><label>Name</label><input value="${esc(a.name || "")}" readonly></div>
-        <div class="field"><label>Email</label><input value="${esc(a.email || "")}" readonly></div>
-      </div>
-    </div>`;
-}
-
-async function deleteAccount(id) {
-  if (!confirm("Remove this admin account from the platform? This will revoke their access.")) return;
-  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Removing…</div>`;
-  try {
-    const res = await fetch(`${ACCOUNTS_URL}/${encodeURIComponent(id)}`, {
-      method: "DELETE",
-      headers: { Accept: "application/json" },
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "remove_failed");
-    accs = accs.filter(a => a.id !== id);
-    $("#accCount").textContent = accs.length;
-    $("#content").innerHTML = accs.length
-      ? `<div class="admin-grid">${accs.map(renderAccountCard).join("")}</div>`
-      : `<div class="empty">No admin accounts yet.</div>`;
-  } catch (err) {
-    $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(err.message)}</div>`;
   }
 }
 
@@ -1008,7 +968,7 @@ function yamlScalar(v) {
   if (v == null) return '""';
   const s = String(v);
   if (s === "") return '""';
-  if (/[:#\\->{}\[\\],&*!|>'\"%@`]/.test(s) || s !== s.trim() || /^\d+$/.test(s)) {
+  if (/[:#\\\-{}\[\],&*!|>'\"%@`]/.test(s) || s !== s.trim() || /^\d+$/.test(s)) {
     return JSON.stringify(s);
   }
   return s;
@@ -1062,57 +1022,12 @@ $("#loginBtn").addEventListener("click", login);
 $("#logoutBtn").addEventListener("click", logout);
 $("#newBtn").addEventListener("click", createNew);
 
-// Clear any stale session token on load
-token && sessionStorage.getItem("gh_session_token") ? sessionStorage.removeItem("gh_session_token") : null;
-token && user ? showApp() : showGate();
-
-/* Add account modal */
-$("#addAccountModal").addEventListener("click", (e) => {
-  if (e.target === e.currentTarget) $("#addAccountModal").hidden = true;
-});
-$("#newBtn").addEventListener("click", () => { $("#addAccountModal").hidden = false; });
-$("#cancelAdd").addEventListener("click", () => { $("#addAccountModal").hidden = true; });
-$("#addBtn").addEventListener("click", async () => {
-  const login = $("#addLogin").value.trim();
-  if (!login) return;
-  const role = $("#addRole").value;
-  $("#addBtn").disabled = true;
-  $("#addBtn").innerHTML = `<span class="spinner"></span> Adding…`;
-  try {
-    const res = await fetch(ACCOUNTS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ github_login: login, name: "", roles: role }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "add_failed");
-    $("#addAccountModal").hidden = true;
-    $("#addLogin").value = "";
-    await loadCounts();
-    switchView("accounts");
-    renderAccounts();
-  } catch (err) {
-    alert(err.message);
-    $("#addBtn").disabled = false;
-    $("#addBtn").innerHTML = `<span class="material-symbols-outlined">person_add</span> Add`;
-  }
-});
-
-/* Quick delete wire-up (delegated) */
-$("#content").addEventListener("click", async (e) => {
-  const btn = e.target.closest("[data-del]");
-  if (!btn) return;
-  const id = btn.dataset.del;
-  await deleteAccount(id);
-});
-
-/* Session validation on load */
-async function init() {
-  const valid = await validateSession();
-  if (valid) showApp();
-  else showGate();
-}
-init();
+/* Restore a session on load, verifying it still belongs to OWNER. */
+(async function init() {
+  if (!token) { showGate(); return; }
+  // authorize() opens the app, or shows a denial / sign-in gate itself.
+  await authorize();
+})();
 </script>
 </body>
 </html>
