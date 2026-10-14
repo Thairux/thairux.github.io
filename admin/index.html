@@ -260,6 +260,7 @@ let view = "posts";
 let postCount = 0;
 let projCount = 0;
 let editing = null;
+let cvState = null;
 
 const $ = (s) => document.querySelector(s);
 
@@ -663,7 +664,6 @@ function isQuoted(v) { return v.length >= 2 && ((v[0] === '"' && v[v.length - 1]
 
 function renderCvEditor() {
   $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading CV…</div>`;
-  let cvState = null;
   loadCv().then((s) => {
     cvState = s;
     paintCvEditor();
@@ -762,7 +762,7 @@ function paintCvEditor() {
     <div class="cv-entry" data-exp="${i}">
       <div class="cv-entry-head">Role ${i + 1}
         <div class="spacer"></div>
-        <button class="btn danger" data-del="exp:${i}"><span class="material-symbols-outlined">delete</span></button>
+        <button class="btn danger" data-del="experience:${i}"><span class="material-symbols-outlined">delete</span></button>
       </div>
       <div class="cv-row">
         <div class="field"><label>Role</label><input value="${esc(r.role || "")}" data-f="role"></div>
@@ -792,7 +792,7 @@ function paintCvEditor() {
     <div class="cv-entry" data-edu="${i}">
       <div class="cv-entry-head">Entry ${i + 1}
         <div class="spacer"></div>
-        <button class="btn danger" data-del="edu:${i}"><span class="material-symbols-outlined">delete</span></button>
+        <button class="btn danger" data-del="education:${i}"><span class="material-symbols-outlined">delete</span></button>
       </div>
       <div class="cv-row">
         <div class="field"><label>Qualification</label><input value="${esc(e.qualification || "")}" data-f="qualification"></div>
@@ -809,7 +809,7 @@ function paintCvEditor() {
     <div class="cv-entry" data-skill="${i}">
       <div class="cv-entry-head">Group ${i + 1}
         <div class="spacer"></div>
-        <button class="btn danger" data-del="skill:${i}"><span class="material-symbols-outlined">delete</span></button>
+        <button class="btn danger" data-del="skills:${i}"><span class="material-symbols-outlined">delete</span></button>
       </div>
       <div class="field"><label>Group name</label><input value="${esc(g.name || "")}" data-f="name"></div>
       <div class="field"><label>Items (comma separated)</label>
@@ -821,7 +821,7 @@ function paintCvEditor() {
     <div class="cv-entry" data-proj="${i}">
       <div class="cv-entry-head">Project ${i + 1}
         <div class="spacer"></div>
-        <button class="btn danger" data-del="proj:${i}"><span class="material-symbols-outlined">delete</span></button>
+        <button class="btn danger" data-del="projects:${i}"><span class="material-symbols-outlined">delete</span></button>
       </div>
       <div class="cv-row">
         <div class="field"><label>Name</label><input value="${esc(p.name || "")}" data-f="name"></div>
@@ -837,7 +837,7 @@ function paintCvEditor() {
     <div class="cv-entry" data-lang="${i}">
       <div class="cv-entry-head">Language ${i + 1}
         <div class="spacer"></div>
-        <button class="btn danger" data-del="lang:${i}"><span class="material-symbols-outlined">delete</span></button>
+        <button class="btn danger" data-del="languages:${i}"><span class="material-symbols-outlined">delete</span></button>
       </div>
       <div class="cv-row">
         <div class="field"><label>Name</label><input value="${esc(l.name || "")}" data-f="name"></div>
