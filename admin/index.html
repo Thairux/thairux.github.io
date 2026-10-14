@@ -267,6 +267,25 @@ const esc = (s) => String(s ?? "").replace(/[&<>"'`]/g, c => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#x60;"
 }[c]));
 
+// Authenticated GitHub API call. Sends the owner's token on every request —
+// required for writes, and it lifts the anonymous 60-req/hour rate limit
+// (which otherwise makes reads fail with 403 and the lists look empty).
+async function gh(path, opts = {}) {
+  const res = await fetch(`${API}${path}`, {
+    ...opts,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json",
+      ...(opts.headers || {}),
+    },
+  });
+  if (res.status === 401) { logout(); throw new Error("Session expired — sign in again."); }
+  const data = res.status === 204 ? null : await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.message || `GitHub API ${res.status}`);
+  return data;
+}
+
 /* Auth */
 function login() {
   const w = 560, h = 700;
@@ -387,11 +406,11 @@ function switchView(v) {
 async function loadCounts() {
   try {
     const [posts, projects] = await Promise.all([
-      fetch(`${API}/repos/${OWNER}/${REPO}/contents/_posts?ref=${BRANCH}`),
-      fetch(`${API}/repos/${OWNER}/${REPO}/contents/_projects?ref=${BRANCH}`),
+      gh(`/repos/${OWNER}/${REPO}/contents/_posts?ref=${BRANCH}`),
+      gh(`/repos/${OWNER}/${REPO}/contents/_projects?ref=${BRANCH}`),
     ]);
-    if (posts.ok) postCount = (await posts.json()).length;
-    if (projects.ok) projCount = (await projects.json()).length;
+    postCount = posts.length;
+    projCount = projects.length;
     $("#postCount").textContent = postCount;
     $("#projCount").textContent = projCount;
   } catch { /* non-critical */ }
@@ -399,12 +418,17 @@ async function loadCounts() {
 
 async function renderList() {
   const dir = view === "posts" ? "_posts" : "_projects";
-  const data = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${dir}?ref=${BRANCH}`);
-  const files = data.ok ? await data.json() : [];
+  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading…</div>`;
+  let files;
+  try {
+    files = await gh(`/repos/${OWNER}/${REPO}/contents/${dir}?ref=${BRANCH}`);
+  } catch (err) {
+    $("#content").innerHTML = `<div class="status-bar err"><span class="material-symbols-outlined">error</span> ${esc(err.message)}</div>`;
+    return;
+  }
   const items = files.filter(f => f.name.endsWith(".md"))
     .map(f => ({ name: f.name, path: f.path, sha: f.sha }));
 
-  $("#content").innerHTML = `<div class="status-bar"><span class="spinner"></span> Loading…</div>`;
   if (!items.length) {
     $("#content").innerHTML = `<div class="empty">No ${view} yet — hit <strong>New</strong> to create one.</div>`;
     return;
@@ -413,8 +437,7 @@ async function renderList() {
   const rows = await Promise.all(items.map(async (it) => {
     let title = it.name;
     try {
-      const raw = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${it.path}?ref=${BRANCH}`)
-        .then(d => d.json()).then(d => atob(d.content));
+      const raw = atob((await gh(`/repos/${OWNER}/${REPO}/contents/${it.path}?ref=${BRANCH}`)).content);
       const m = raw.match(/^---[\s\S]*?---[\s\S]*$/);
       if (m) {
         const fm = m[0].replace(/^---$/g, "").trim();
@@ -437,8 +460,7 @@ async function renderList() {
 }
 
 async function openEditor(path) {
-  const file = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`)
-    .then(d => d.json());
+  const file = await gh(`/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`);
   const raw = atob(file.content);
   const m = raw.match(/^---[\s\S]*?---[\s\S]*$/);
   const front = m ? parseFrontmatterRaw(m[0]) : {};
@@ -491,13 +513,8 @@ async function save() {
   try {
     const updated = { ...editing.front, title: $("#fTitle").value, description: $("#fDesc").value || editing.front.description };
     const content = serializeFrontmatter(updated, $("#fBody").value);
-    await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${editing.path}`, {
+    await gh(`/repos/${OWNER}/${REPO}/contents/${editing.path}`, {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({
         message: `admin: update ${editing.path}`,
         content: btoa(unescape(encodeURIComponent(content))),
@@ -533,13 +550,8 @@ async function createNew() {
   const path = `_posts/${name}`;
   const body = `---\nlayout: post\ntitle: ${slug}\ndate: ${date}\nauthor: Thairux\npermalink: /${slug}/\n---\n\nWrite here.\n`;
   try {
-    await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
+    await gh(`/repos/${OWNER}/${REPO}/contents/${path}`, {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({
         message: `admin: create ${path}`,
         content: btoa(unescape(encodeURIComponent(body))),
@@ -555,9 +567,9 @@ async function createNew() {
 
 /* CV editor */
 async function loadCv() {
-  const file = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${CV_PATH}?ref=${BRANCH}`);
-  const raw = atob((await file.json()).content);
-  return { sha: file.json().sha, raw, data: parseCvYaml(raw) };
+  const file = await gh(`/repos/${OWNER}/${REPO}/contents/${CV_PATH}?ref=${BRANCH}`);
+  const raw = atob(file.content);
+  return { sha: file.sha, raw, data: parseCvYaml(raw) };
 }
 
 function parseCvYaml(text) {
@@ -992,13 +1004,8 @@ async function saveCv() {
 
 `;
     const content = header + toYaml(cvState.data, 0);
-    await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${CV_PATH}`, {
+    await gh(`/repos/${OWNER}/${REPO}/contents/${CV_PATH}`, {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({
         message: "admin: update CV data (_data/cv.yml)",
         content: btoa(unescape(encodeURIComponent(content))),
